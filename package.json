@@ -1,0 +1,8 @@
+{
+  "name": "koremite-vercel-test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:vercel": "node --check api/minutes-test.js"
+  }
+}

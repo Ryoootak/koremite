@@ -24,6 +24,7 @@
 - Backend typecheck passes with `npm run typecheck`.
 - Gemini API staging check passed with HTTP 200.
 - Repeating the same `sourceHash` returned `costInfo.cacheHit: true`.
+- Vercel test page and `/api/minutes-test` proxy added. Vercel only needs `KOREMITE_API_BASE_URL`; Gemini keys stay in Cloudflare.
 
 ## Next
 - Open in Xcode and run an iOS Simulator build.
@@ -31,6 +32,7 @@
 - Add SwiftData integration tests once Xcode test execution is available.
 - Exercise real AI provider in staging Worker with a test secret.
 - Wire iOS `RemoteAIClient` to the staging URL behind a build/config switch.
+- Confirm Vercel Preview deployment can call Cloudflare staging from the browser test page.
 - Replace in-memory Worker cache/rate-limit fallback with KV/Durable Object if production traffic requires cross-isolate consistency.
 
 ## Backlog

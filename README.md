@@ -46,6 +46,15 @@ npm install
 npm run dev
 ```
 
+## Vercel Test Page
+Vercel can host a small browser test page at `/`. It calls `/api/minutes-test`, which forwards requests to the Cloudflare Workers staging API.
+
+Required Vercel environment variable:
+
+- `KOREMITE_API_BASE_URL=https://koremite-api-staging.koremite.workers.dev`
+
+Do not add `GEMINI_API_KEY` to Vercel. Gemini API keys stay only in Cloudflare Workers secrets.
+
 ## Environment
 Copy `Backend/.env.example` to your local environment provider. Never commit real secrets.
 
@@ -66,6 +75,7 @@ Required backend variables:
 - iOS: `xcodebuild test -project Koremite.xcodeproj -scheme Koremite -destination 'platform=iOS Simulator,name=iPhone 15'`.
 - Backend: `cd Backend && npm test`.
 - Backend typecheck: `cd Backend && npm run typecheck`.
+- Vercel test function syntax: `npm run check:vercel`.
 
 Current local limitation: `xcodebuild` cannot run while `xcode-select -p` points to `/Library/Developer/CommandLineTools`. Later verification:
 

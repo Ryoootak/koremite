@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Koremite staging test</title>
+    <style>
+      :root {
+        --bg: #e7e5df;
+        --card: #ffffff;
+        --text: #202821;
+        --muted: #626b62;
+        --moss: #3b6b46;
+        --soft: #edf4ea;
+        --line: #dcd9d0;
+        color-scheme: light;
+        font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        width: min(920px, 100%);
+        margin: 0 auto;
+        padding: 28px 18px 48px;
+      }
+
+      header {
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0 0 6px;
+        font-size: 34px;
+        letter-spacing: 0;
+      }
+
+      p {
+        line-height: 1.7;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+      }
+
+      label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+
+      textarea,
+      input,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        font: inherit;
+        background: #faf9f6;
+      }
+
+      textarea {
+        min-height: 170px;
+        resize: vertical;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .chips label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 9px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        padding: 15px 18px;
+        background: var(--moss);
+        color: #fff;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .result {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: #fbfaf7;
+        border-radius: 14px;
+        padding: 14px;
+        border: 1px solid var(--line);
+      }
+
+      .summary {
+        background: var(--soft);
+        border-color: #c9ddc5;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Koremite</h1>
+        <p class="muted">VercelからCloudflare Workers stagingを呼ぶテスト画面です。音声は扱わず、貼り付けた文字起こしテキストだけを送信します。</p>
+      </header>
+
+      <form id="form" class="grid">
+        <section class="card">
+          <label for="transcript">文字起こし</label>
+          <textarea id="transcript" name="transcript">今日は住宅購入について打ち合わせました。次回までに見積もりと住宅ローンの条件を確認します。金額とスケジュールは家族に共有して、来週もう一度相談します。</textarea>
+          <p class="muted" id="count">0文字</p>
+        </section>
+
+        <section class="card">
+          <label for="category">用途</label>
+          <select id="category" name="category">
+            <option>住宅</option>
+            <option>仕事</option>
+            <option>家庭</option>
+            <option>その他</option>
+          </select>
+        </section>
+
+        <section class="card">
+          <label for="speakers">話者候補</label>
+          <input id="speakers" name="speakers" value="自分, 担当者" />
+          <p class="muted">カンマ区切りで入力します。</p>
+        </section>
+
+        <section class="card">
+          <label>重視ポイント</label>
+          <div class="chips">
+            <label><input type="checkbox" name="focus" value="決定事項" checked />決定事項</label>
+            <label><input type="checkbox" name="focus" value="やること" checked />やること</label>
+            <label><input type="checkbox" name="focus" value="金額" checked />金額</label>
+            <label><input type="checkbox" name="focus" value="スケジュール" checked />スケジュール</label>
+            <label><input type="checkbox" name="focus" value="懸念点" />懸念点</label>
+            <label><input type="checkbox" name="focus" value="感情" />感情</label>
+          </div>
+        </section>
+
+        <button id="submit" type="submit">stagingで議事録を生成</button>
+      </form>
+
+      <section class="card" style="margin-top: 14px;">
+        <h2>結果</h2>
+        <div id="summary" class="result summary">まだ生成していません。</div>
+        <h3>Raw JSON</h3>
+        <div id="raw" class="result">-</div>
+      </section>
+    </main>
+
+    <script>
+      const form = document.querySelector("#form");
+      const submit = document.querySelector("#submit");
+      const transcript = document.querySelector("#transcript");
+      const count = document.querySelector("#count");
+      const summary = document.querySelector("#summary");
+      const raw = document.querySelector("#raw");
+
+      function updateCount() {
+        count.textContent = `${transcript.value.length}文字`;
+      }
+
+      transcript.addEventListener("input", updateCount);
+      updateCount();
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        submit.disabled = true;
+        summary.textContent = "生成中です...";
+        raw.textContent = "-";
+
+        const formData = new FormData(form);
+        const payload = {
+          transcript: formData.get("transcript"),
+          category: formData.get("category"),
+          speakers: String(formData.get("speakers") || "")
+            .split(",")
+            .map((speaker) => speaker.trim())
+            .filter(Boolean),
+          focusPoints: formData.getAll("focus")
+        };
+
+        try {
+          const response = await fetch("/api/minutes-test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          const json = await response.json();
+          if (!response.ok) throw new Error(json.message || "生成できませんでした。");
+
+          summary.textContent = json.shareSummary?.text || "共有版がありません。";
+          raw.textContent = JSON.stringify(json, null, 2);
+        } catch (error) {
+          summary.textContent = error.message || "エラーが発生しました。";
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
