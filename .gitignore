@@ -1,0 +1,19 @@
+.DS_Store
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+Backend/.wrangler/
+Backend/dist/
+
+# Swift/Xcode
+build/
+*.ipa
+*.dSYM.zip
