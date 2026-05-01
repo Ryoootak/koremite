@@ -1,8 +1,8 @@
 import { buildFullLog, GenerateRequest, MinutesResponse, modeFor, normalizeMinutesResponse, ProcessingMode, safeFallbackResponse, validateMinutesResponse } from "./schema";
 
 export type Env = {
-  AI_API_KEY: string;
-  AI_BASE_URL?: string;
+  GEMINI_API_KEY?: string;
+  GEMINI_BASE_URL?: string;
   AI_MODEL_FAST?: string;
   AI_MODEL_QUALITY?: string;
   MAX_INPUT_CHARS?: string;
@@ -14,14 +14,9 @@ export type Env = {
   RATE_LIMIT_WINDOW_SECONDS?: string;
 };
 
-type ChatMessage = {
-  role: "system" | "user";
-  content: string;
-};
-
 export async function generateMinutesWithAI(request: GenerateRequest, env: Env): Promise<MinutesResponse> {
-  if (!env.AI_API_KEY) {
-    throw new Error("AI_API_KEY is not configured");
+  if (!geminiApiKey(env)) {
+    throw new Error("GEMINI_API_KEY is not configured");
   }
 
   const processingMode = modeFor(request.transcript.length);
@@ -32,10 +27,11 @@ export async function generateMinutesWithAI(request: GenerateRequest, env: Env):
     const chunkNotes: string[] = [];
 
     for (const [index, chunk] of chunks.entries()) {
-      const note = await callChatText(env, env.AI_MODEL_FAST ?? "gpt-4o-mini", [
-        { role: "system", content: chunkSystemPrompt() },
-        { role: "user", content: `チャンク ${index + 1}/${chunks.length}\n\n${chunk}` }
-      ]);
+      const note = await callGeminiText(
+        env,
+        env.AI_MODEL_FAST ?? "gemini-2.5-flash-lite",
+        `${chunkSystemPrompt()}\n\nチャンク ${index + 1}/${chunks.length}\n\n${chunk}`
+      );
       chunkNotes.push(note);
     }
 
@@ -46,10 +42,12 @@ export async function generateMinutesWithAI(request: GenerateRequest, env: Env):
 }
 
 async function generateFinal(request: GenerateRequest, env: Env, processingMode: ProcessingMode, sourceForAI: string): Promise<MinutesResponse> {
-  const content = await callChatText(env, env.AI_MODEL_QUALITY ?? env.AI_MODEL_FAST ?? "gpt-4o-mini", [
-    { role: "system", content: systemPrompt() },
-    { role: "user", content: userPrompt(request, sourceForAI, processingMode) }
-  ]);
+  const content = await callGeminiText(
+    env,
+    env.AI_MODEL_QUALITY ?? env.AI_MODEL_FAST ?? "gemini-2.5-flash",
+    `${systemPrompt()}\n\n${userPrompt(request, sourceForAI, processingMode)}`,
+    minutesJsonSchema()
+  );
 
   const parsed = parseJsonObject(content);
   const validated = validateMinutesResponse(parsed);
@@ -64,11 +62,14 @@ async function generateFinal(request: GenerateRequest, env: Env, processingMode:
   return normalized;
 }
 
-async function callChatText(env: Env, model: string, messages: ChatMessage[]): Promise<string> {
-  const baseURL = env.AI_BASE_URL ?? "https://api.openai.com";
+async function callGeminiText(env: Env, model: string, prompt: string, responseJsonSchema?: Record<string, unknown>): Promise<string> {
+  const apiKey = geminiApiKey(env);
+  if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+  const baseURL = env.GEMINI_BASE_URL ?? "https://generativelanguage.googleapis.com";
   const timeoutMs = Number(env.AI_TIMEOUT_MS ?? "45000");
   const maxRetries = Number(env.AI_MAX_RETRIES ?? "2");
-  const url = `${baseURL.replace(/\/$/, "")}/v1/chat/completions`;
+  const url = `${baseURL.replace(/\/$/, "")}/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     const controller = new AbortController();
@@ -78,14 +79,18 @@ async function callChatText(env: Env, model: string, messages: ChatMessage[]): P
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${env.AI_API_KEY}`,
+          "x-goog-api-key": apiKey,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          model,
-          messages,
-          temperature: 0.2,
-          response_format: { type: "json_object" }
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: "application/json",
+            ...(responseJsonSchema ? { responseJsonSchema } : {})
+          }
         }),
         signal: controller.signal
       });
@@ -101,8 +106,8 @@ async function callChatText(env: Env, model: string, messages: ChatMessage[]): P
         throw new Error(`AI provider failed with status ${response.status}`);
       }
 
-      const json = await response.json() as { choices?: { message?: { content?: string } }[] };
-      const content = json.choices?.[0]?.message?.content;
+      const json = await response.json() as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+      const content = json.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("");
       if (!content) throw new Error("AI provider returned empty content");
       return content;
     } catch (error) {
@@ -113,6 +118,10 @@ async function callChatText(env: Env, model: string, messages: ChatMessage[]): P
   }
 
   throw new Error("AI provider retry budget exhausted");
+}
+
+function geminiApiKey(env: Env): string | undefined {
+  return env.GEMINI_API_KEY;
 }
 
 export function chunkText(text: string, chunkCharLimit: number): string[] {
@@ -201,6 +210,72 @@ function chunkSystemPrompt(): string {
     "入力にない事実を追加せず、決定事項、TODO、金額、日付、懸念点、重要発言、確認事項を箇条書きJSONで残してください。",
     "JSONのみを返してください。"
   ].join("\n");
+}
+
+function minutesJsonSchema(): Record<string, unknown> {
+  const nullableString = { type: ["string", "null"] };
+  const todo = {
+    type: "object",
+    properties: {
+      owner: nullableString,
+      task: { type: "string" },
+      due: nullableString
+    },
+    required: ["owner", "task", "due"]
+  };
+
+  return {
+    type: "object",
+    properties: {
+      title: { type: "string" },
+      shareSummary: {
+        type: "object",
+        properties: {
+          text: { type: "string" },
+          decisions: { type: "array", items: { type: "string" } },
+          todos: { type: "array", items: todo },
+          confirmationPoints: { type: "array", items: { type: "string" } }
+        },
+        required: ["text", "decisions", "todos", "confirmationPoints"]
+      },
+      detailedMinutes: {
+        type: "object",
+        properties: {
+          overview: { type: "string" },
+          topics: { type: "array", items: { type: "string" } },
+          decisions: { type: "array", items: { type: "string" } },
+          openIssues: { type: "array", items: { type: "string" } },
+          todos: { type: "array", items: todo },
+          importantRemarks: { type: "array", items: { type: "string" } },
+          nextMeetingNotes: { type: "array", items: { type: "string" } }
+        },
+        required: ["overview", "topics", "decisions", "openIssues", "todos", "importantRemarks", "nextMeetingNotes"]
+      },
+      fullLog: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            speaker: { type: "string" },
+            text: { type: "string" }
+          },
+          required: ["speaker", "text"]
+        }
+      },
+      category: { type: "string", enum: ["住宅", "仕事", "家庭", "その他"] },
+      confidenceWarnings: { type: "array", items: { type: "string" } },
+      costInfo: {
+        type: "object",
+        properties: {
+          inputLength: { type: "integer" },
+          processingMode: { type: "string", enum: ["short", "normal", "long_chunked"] },
+          cacheHit: { type: "boolean" }
+        },
+        required: ["inputLength", "processingMode", "cacheHit"]
+      }
+    },
+    required: ["title", "shareSummary", "detailedMinutes", "fullLog", "category", "confidenceWarnings", "costInfo"]
+  };
 }
 
 function sleep(ms: number): Promise<void> {

@@ -24,5 +24,5 @@ Keep the warm off-white background, white cards, moss-green accent, pill chips, 
 ## 2026-05-01: SwiftData Archive Wrapper
 The archive moved from in-memory state to SwiftData via `ArchivedMinutesRecord`, while keeping `ArchiveStore` as a small UI-facing wrapper. This limits View churn and keeps the persistence boundary easy to test.
 
-## 2026-05-01: OpenAI-Compatible Backend Adapter
-The Worker calls an OpenAI-compatible `/v1/chat/completions` endpoint configured by `AI_BASE_URL`. This keeps the backend practical now while leaving room to swap providers or models without changing iOS.
+## 2026-05-01: Gemini Backend Adapter
+The Worker calls the Gemini API `generateContent` endpoint configured by `GEMINI_BASE_URL`. The AI key is stored as the Cloudflare secret `GEMINI_API_KEY`, and iOS still only talks to the Koremite backend.

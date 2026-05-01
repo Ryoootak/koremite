@@ -58,3 +58,4 @@ Return safe Japanese messages to the app. Do not include the transcript in error
 - Keep AI API key in environment variables only.
 - Cache successful results by `sourceHash` for `CACHE_TTL_SECONDS`.
 - For `long_chunked`, compress chunks with the fast model before final synthesis.
+- MVP AI provider is Gemini API via `GEMINI_API_KEY` and `GEMINI_BASE_URL`.

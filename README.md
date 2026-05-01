@@ -50,8 +50,8 @@ npm run dev
 Copy `Backend/.env.example` to your local environment provider. Never commit real secrets.
 
 Required backend variables:
-- `AI_API_KEY`
-- `AI_BASE_URL`
+- `GEMINI_API_KEY`
+- `GEMINI_BASE_URL`
 - `AI_MODEL_FAST`
 - `AI_MODEL_QUALITY`
 - `MAX_INPUT_CHARS`

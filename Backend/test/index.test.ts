@@ -2,9 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 
 const validAIResponse = {
-  choices: [{
-    message: {
-      content: JSON.stringify({
+  candidates: [{
+    content: {
+      parts: [{
+        text: JSON.stringify({
         title: "住宅の打ち合わせ",
         shareSummary: {
           text: "共有用の短い要約です。",
@@ -25,7 +26,8 @@ const validAIResponse = {
         category: "住宅",
         confidenceWarnings: [],
         costInfo: { inputLength: 0, processingMode: "short", cacheHit: false }
-      })
+        })
+      }]
     }
   }]
 };
@@ -56,6 +58,7 @@ describe("worker", () => {
     expect(json.title).toBe("住宅の打ち合わせ");
     expect(json.costInfo.inputLength).toBeGreaterThan(0);
     expect(json.costInfo.cacheHit).toBe(false);
+    expect(vi.mocked(fetch).mock.calls[0][0].toString()).toContain("generativelanguage.googleapis.com");
   });
 
   it("rate limits repeated requests", async () => {
@@ -95,10 +98,10 @@ describe("worker", () => {
 
 function testEnv(overrides: Record<string, string> = {}) {
   return {
-    AI_API_KEY: "test-key",
-    AI_BASE_URL: "https://ai.example.com",
-    AI_MODEL_FAST: "fast",
-    AI_MODEL_QUALITY: "quality",
+    GEMINI_API_KEY: "test-key",
+    GEMINI_BASE_URL: "https://generativelanguage.googleapis.com",
+    AI_MODEL_FAST: "gemini-2.5-flash-lite",
+    AI_MODEL_QUALITY: "gemini-2.5-flash",
     MAX_INPUT_CHARS: "30000",
     CACHE_TTL_SECONDS: "1",
     RATE_LIMIT_MAX_REQUESTS: "20",
