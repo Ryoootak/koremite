@@ -25,9 +25,12 @@ final class ArchiveStore: ObservableObject {
             return
         }
 
-        // If already saved by sourceHash, update folder assignment only
-        if let sourceHash = result.sourceHash,
-           let existing = (try? modelContext.fetch(FetchDescriptor<ArchivedMinutesRecord>()))?.first(where: { $0.sourceHash == sourceHash }) {
+        // If already saved, update folder assignment only.
+        let resultID = result.id.uuidString
+        let sourceHash = result.sourceHash
+        if let existing = (try? modelContext.fetch(FetchDescriptor<ArchivedMinutesRecord>()))?.first(where: {
+            $0.recordID == resultID || (sourceHash != nil && $0.sourceHash == sourceHash)
+        }) {
             existing.folderID = folderID
             try? modelContext.save()
             refresh()
@@ -91,13 +94,22 @@ final class ArchiveStore: ObservableObject {
     }
 
     func search(_ query: String) -> [MinutesResult] {
-        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return items
-        }
-        return items.filter {
-            $0.title.localizedCaseInsensitiveContains(query)
-                || $0.shareSummary.text.localizedCaseInsensitiveContains(query)
-                || $0.detailedMinutes.overview.localizedCaseInsensitiveContains(query)
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return items }
+        return items.filter { result in
+            let searchableText = [
+                result.title,
+                result.category.rawValue,
+                result.shareSummary.text,
+                result.detailedMinutes.overview,
+                result.detailedMinutes.topics.joined(separator: " "),
+                result.detailedMinutes.decisions.joined(separator: " "),
+                result.detailedMinutes.openIssues.joined(separator: " "),
+                result.detailedMinutes.importantRemarks.joined(separator: " "),
+                result.detailedMinutes.nextMeetingNotes.joined(separator: " "),
+                result.fullLog.map { "\($0.speaker) \($0.text)" }.joined(separator: " ")
+            ].joined(separator: " ")
+            return TextUtilities.matchesFuzzy(searchableText, query: trimmed)
         }
     }
 

@@ -188,8 +188,7 @@ private struct FullLogView: View {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return entries }
         return entries.filter {
-            $0.speaker.localizedCaseInsensitiveContains(trimmed)
-                || $0.text.localizedCaseInsensitiveContains(trimmed)
+            TextUtilities.matchesFuzzy("\($0.speaker) \($0.text)", query: trimmed)
         }
     }
 

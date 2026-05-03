@@ -21,6 +21,7 @@ KoremiteはiOS 17+ SwiftUIアプリで、貼り付けた文字起こしテキス
 - `Koremite/Views/`: SwiftUIスクリーン/コンポーネント
 - `Backend/`: Cloudflare Worker API
 - `docs/`: プロダクト・アーキテクチャ・セキュリティ・コスト・タスク・設計判断
+- `public/index.html`: Vercel Preview用のSwiftUI相当UXミラー。保存/フォルダはブラウザlocalStorageで確認する
 
 ## ビルドとテスト
 - `Koremite.xcodeproj` をXcodeで開き、iOS 17+シミュレータでKoremiteスキームを実行する
@@ -29,12 +30,14 @@ KoremiteはiOS 17+ SwiftUIアプリで、貼り付けた文字起こしテキス
 - バックエンドローカル起動: `cd Backend && npm install && npm run dev`
 - バックエンドテスト: `cd Backend && npm test`
 - バックエンドtypecheck: `cd Backend && npm run typecheck`
+- Vercel Preview構文チェック: `npm run check:vercel`
 
 ## コーディングルール
 - 探索→計画→実装の順で進める
 - 編集前に関連ファイルを読み、非自明な作業はプランを更新する
 - Viewは小さく保つ。定数は `DesignSystem`、振る舞いはViewModels、ネットワーク処理はServicesへ
 - 文字列パースよりJSON構造化パースを優先する
+- アーカイブ/全量ログ検索は、タイトル・共有版・詳細議事録・全量ログ本文を対象にし、表記ゆれに強い曖昧検索を維持する
 - UIコピーは日本語。システム/API識別子のみ英語が必要な場合は例外
 - MVPに音声機能を追加しない
 - 貼り付けた文字起こし・生成済み議事録・APIペイロード・個人データをログに記録しない

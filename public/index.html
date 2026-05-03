@@ -472,6 +472,44 @@
           .replaceAll("'", "&#039;");
       }
 
+      function normalizeForSearch(value) {
+        return String(value ?? "")
+          .normalize("NFKC")
+          .toLowerCase()
+          .replace(/\s+/g, "");
+      }
+
+      function matchesFuzzy(text, query) {
+        const normalizedText = normalizeForSearch(text);
+        const normalizedQuery = normalizeForSearch(query);
+        if (!normalizedQuery) return true;
+        if (normalizedText.includes(normalizedQuery)) return true;
+        let index = 0;
+        for (const char of normalizedQuery) {
+          index = normalizedText.indexOf(char, index);
+          if (index === -1) return false;
+          index += 1;
+        }
+        return true;
+      }
+
+      function renderPreservingFocus(inputID) {
+        const active = document.activeElement?.id;
+        const selectionStart = document.activeElement?.selectionStart;
+        const selectionEnd = document.activeElement?.selectionEnd;
+        render();
+        if (active === inputID) {
+          requestAnimationFrame(() => {
+            const input = document.querySelector(`#${inputID}`);
+            if (!input) return;
+            input.focus();
+            if (typeof selectionStart === "number" && typeof selectionEnd === "number") {
+              input.setSelectionRange(selectionStart, selectionEnd);
+            }
+          });
+        }
+      }
+
       function currentSpeakers() {
         const names = state.speakersText.split(",").map((name) => name.trim()).filter(Boolean);
         return (names.length ? names : ["自分", "相手"]).slice(0, 4).map((name, index) => ({
@@ -753,9 +791,10 @@
         if (state.resultTab === "log") {
           const entries = result.fullLog || [];
           const q = state.logQuery || "";
+          const indexedEntries = entries.map((entry, index) => ({ entry, index }));
           const filtered = q
-            ? entries.filter((e) => (e.speaker || "").includes(q) || (e.text || "").includes(q))
-            : entries;
+            ? indexedEntries.filter(({ entry }) => matchesFuzzy(`${entry.speaker || ""} ${entry.text || ""}`, q))
+            : indexedEntries;
           return `
             <div style="display:flex;flex-direction:column;gap:10px;animation:km-fade-up 280ms ease">
               <div style="background:var(--km-bg-2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:var(--km-text-3)">
@@ -765,9 +804,12 @@
               </div>
               ${filtered.length === 0
                 ? `<div class="km-meta" style="text-align:center;padding:24px">${q ? "検索結果なし" : "全量ログがありません"}</div>`
-                : filtered.map((entry) => `
+                : filtered.map(({ entry, index }) => `
                   <div class="km-card" style="padding:14px 16px">
-                    <div style="font-size:11px;font-weight:700;color:var(--km-moss);margin-bottom:6px;letter-spacing:0.02em">${escapeHTML(entry.speaker || "")}</div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                      <div style="font-size:11px;font-weight:700;color:var(--km-moss);letter-spacing:0.02em;flex:1">${escapeHTML(entry.speaker || "")}</div>
+                      <button class="km-btn" data-edit-line="${index}" style="background:transparent;color:var(--km-text-3);padding:2px 4px;font-size:11px;font-weight:700">修正</button>
+                    </div>
                     <div style="font-size:14px;line-height:1.6">${escapeHTML(entry.text || "")}</div>
                   </div>`).join("")}
             </div>
@@ -883,7 +925,19 @@
         const displayItems = (() => {
           if (state.archiveQuery) {
             const q = state.archiveQuery;
-            return all.filter((it) => `${it.title} ${it.folderName || ""} ${it.shareSummary?.text || ""}`.includes(q));
+            return all.filter((it) => matchesFuzzy([
+              it.title,
+              it.folderName || "",
+              it.category || "",
+              it.shareSummary?.text || "",
+              it.detailedMinutes?.overview || "",
+              ...(it.detailedMinutes?.topics || []),
+              ...(it.detailedMinutes?.decisions || []),
+              ...(it.detailedMinutes?.openIssues || []),
+              ...(it.detailedMinutes?.importantRemarks || []),
+              ...(it.detailedMinutes?.nextMeetingNotes || []),
+              ...(it.fullLog || []).map((entry) => `${entry.speaker || ""} ${entry.text || ""}`)
+            ].join(" "), q));
           }
           if (state.archiveFolder === "all") return all;
           if (state.archiveFolder === "unfoldered") return all.filter((it) => !it.folderName);
@@ -936,6 +990,16 @@
               <input id="addFolderInput" value="${escapeHTML(state.newFolderDraft)}" placeholder="フォルダ名" style="flex:1;font-size:15px" />
             </div>
             <button class="km-btn km-btn-primary" data-action="confirm-add-folder" style="width:100%;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px">作成</button>
+            ${state.folders.length ? `
+              <div style="margin-top:16px;font-size:12px;font-weight:700;color:var(--km-text-3);letter-spacing:0.04em">フォルダ管理</div>
+              <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;max-height:190px;overflow-y:auto">
+                ${state.folders.map((folder) => `
+                  <div style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px">
+                    ${icon("folder", 16)}
+                    <span style="flex:1;font-size:14px;font-weight:600">${escapeHTML(folder)}</span>
+                    <button class="km-btn" data-delete-folder="${escapeHTML(folder)}" style="background:transparent;color:#B45353;padding:4px 6px;font-size:12px;font-weight:700">削除</button>
+                  </div>`).join("")}
+              </div>` : ""}
             <button data-action="close-add-folder" class="km-btn km-btn-ghost" style="width:100%;margin-top:8px;padding:12px 14px;background:var(--km-card-2);border-radius:12px;color:var(--km-text-2)">キャンセル</button>
           </div>
         `;
@@ -1049,11 +1113,11 @@
         }
         if (event.target.id === "archiveQuery") {
           state.archiveQuery = event.target.value;
-          render();
+          renderPreservingFocus("archiveQuery");
         }
         if (event.target.id === "logQuery") {
           state.logQuery = event.target.value;
-          render();
+          renderPreservingFocus("logQuery");
         }
         if (event.target.id === "newFolderInput") {
           state.newFolderDraft = event.target.value;
@@ -1064,7 +1128,7 @@
       });
 
       screen.addEventListener("click", (event) => {
-        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder]");
+        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder],[data-delete-folder]");
         if (!target) return;
 
         const action = target.dataset.action;
@@ -1116,6 +1180,16 @@
 
         if ("saveToFolder" in target.dataset) {
           saveToFolder(target.dataset.saveToFolder || null);
+        }
+
+        if (target.dataset.deleteFolder) {
+          const folderName = target.dataset.deleteFolder;
+          state.folders = state.folders.filter((folder) => folder !== folderName);
+          state.archives = state.archives.map((item) => item.folderName === folderName ? { ...item, folderName: null } : item);
+          persistFolders();
+          persistArchives();
+          if (state.archiveFolder === folderName) state.archiveFolder = "all";
+          render();
         }
 
         if (target.dataset.openArchive) {

@@ -23,9 +23,10 @@
 - Gemini APIステージング確認（HTTP 200）
 - 同一 `sourceHash` で `costInfo.cacheHit: true` を確認
 - Vercelテストページと `/api/minutes-test` プロキシ追加
-- VercelウェブプレビューのlocalStorage永続化
 - GitHub Actions CI追加（バックエンドチェック・Vercel構文・iOSシミュレータビルド/テスト）
 - GitHub Actions CI run #2 mainブランチで通過
+- **Codex 2026-05-03補足**: 参考HTMLに近いVercel Previewへ刷新、Cloudflare Workersステージングへ疎通、Vercel環境変数は`KOREMITE_API_BASE_URL`のみ、GeminiキーはCloudflare secretのみで運用する方針を確認
+- **Codex 2026-05-03補足**: Web PreviewのアーカイブをlocalStorageで永続化、保存ボタンを追加、生成中コピーから「コストを抑える」表現を削除
 - **安定ID修正**: `ArchivedMinutesRecord.decodedResult()` が `recordID` から一貫したUUIDを復元するよう修正（検索フォーカス喪失・NavigationLink不動作の根本原因を解決）
 - **フォルダシステム**: `FolderRecord`（SwiftData）・`ArchiveStore` のフォルダCRUD・`folderAssignments`ディクショナリ追加
 - **ArchiveView全面刷新**: フォルダ階層ナビ（全て/フォルダなし/各フォルダへのドリルダウン）・フォルダ作成/削除/名前変更・タブ切替でトップ画面に戻るリセット
@@ -33,6 +34,9 @@
 - **手動フォルダ割り当て**: 保存ボタン→FolderPickerSheetフロー・シートからフォルダ新規作成も可能・自動分類なし
 - 全ドキュメントを日本語化
 - **Vercel index.html全面刷新**: 全量ログタブ（3枚目・発言/話者検索付き）追加・ユーザー管理フォルダ（作成/削除・localStorage永続化）・保存前フォルダ選択シート・アーカイブ画面フォルダフィルタチップ・壊れていたログタブ強制リセット削除・ダミーアーカイブ削除（タップ無反応の原因）
+- **検索改善**: iOS/SwiftUIとWeb Previewのアーカイブ検索・全量ログ検索を曖昧検索化。アーカイブ検索対象に詳細議事録と全量ログ本文も含める
+- **Web Preview検索フォーカス修正**: アーカイブ/全量ログ検索の入力ごとの再描画でフォーカスが外れる問題を、再描画後のフォーカス復元で修正
+- **保存重複対策**: SwiftData保存時に`sourceHash`だけでなく`recordID`でも既存レコードを検出し、同じ議事録の二重保存を避ける
 
 ## 次のステップ
 - Xcodeでビルドし、iOSシミュレータで動作確認

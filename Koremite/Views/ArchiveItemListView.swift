@@ -27,10 +27,20 @@ struct ArchiveItemListView: View {
     private var displayItems: [MinutesResult] {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return baseItems }
-        return baseItems.filter {
-            $0.title.localizedCaseInsensitiveContains(trimmed)
-                || $0.shareSummary.text.localizedCaseInsensitiveContains(trimmed)
-                || $0.detailedMinutes.overview.localizedCaseInsensitiveContains(trimmed)
+        return baseItems.filter { result in
+            let searchableText = [
+                result.title,
+                result.category.rawValue,
+                result.shareSummary.text,
+                result.detailedMinutes.overview,
+                result.detailedMinutes.topics.joined(separator: " "),
+                result.detailedMinutes.decisions.joined(separator: " "),
+                result.detailedMinutes.openIssues.joined(separator: " "),
+                result.detailedMinutes.importantRemarks.joined(separator: " "),
+                result.detailedMinutes.nextMeetingNotes.joined(separator: " "),
+                result.fullLog.map { "\($0.speaker) \($0.text)" }.joined(separator: " ")
+            ].joined(separator: " ")
+            return TextUtilities.matchesFuzzy(searchableText, query: trimmed)
         }
     }
 

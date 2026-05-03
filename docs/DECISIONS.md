@@ -30,6 +30,15 @@ WorkerはGemini API `generateContent` エンドポイントを`GEMINI_BASE_URL`�
 ## 2026-05-03: VercelウェブプレビューによるiOS UX検証
 Vercel Next.jsページ（`/`）がiOSの入力→ローディング→結果フローをlocalStorageを使って再現する。Vercel Function（`/api/minutes-test`）がCloudflare Workersバックエンドへプロキシする。GeminiキーはCloudflareのみに保持し、Vercelには`KOREMITE_API_BASE_URL`だけ設定する。
 
+## 2026-05-03: CLI/GitHub Actions優先のiOS検証
+開発MacでXcode本体やSimulator確認が難しい間は、GitHub ActionsのmacOSランナーでiOS build/testを回す。ローカルでは`swiftc -parse`とバックエンド/Vercel構文チェックを併用し、Xcode.appが使える環境になったら`xcodebuild test`で確認する。
+
+## 2026-05-03: Vercel PreviewはネイティブUX確認用ミラー
+Vercel PreviewはWeb本番ではなく、古いMacでも画面の流れを確認するためのSwiftUI相当UXミラーとして扱う。参考HTMLの温かいカード感・余白・共有シート風の動きを取り込みつつ、録音/音声アップロードに見える要素は入れない。保存済み議事録とフォルダはPreview内では`localStorage`に保存し、実端末間同期はMVP外とする。
+
+## 2026-05-03: 生成中コピーの方針
+コスト最小化はKoremiteの内部設計価値だが、生成中画面で「コストを抑える」表現を前面に出すとユーザー体験が事務的になる。UIでは「内容を確認しながら、読みやすい形に整えています」のように安心感のある表現にし、詳細なコスト方針はdocsとバックエンド実装に閉じる。
+
 ## 2026-05-03: 3層出力構成（共有版 / 議事録 / 全量ログ）
 ResultViewは「共有版」「議事録」「全量ログ」の3タブを持つ。全量ログタブは話者別エントリのリストで、タブ内検索フィールドにより話者名・テキストで絞り込み可能。一度削除したが、要約済み出力と並べて生の追跡可能性を保持するために復元した。
 

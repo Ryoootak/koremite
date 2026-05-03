@@ -18,4 +18,27 @@ enum TextUtilities {
             return .longChunked
         }
     }
+
+    static func matchesFuzzy(_ text: String, query: String) -> Bool {
+        let normalizedText = normalizeForSearch(text)
+        let normalizedQuery = normalizeForSearch(query)
+        guard !normalizedQuery.isEmpty else { return true }
+        if normalizedText.contains(normalizedQuery) { return true }
+
+        var searchIndex = normalizedText.startIndex
+        for character in normalizedQuery {
+            guard let found = normalizedText[searchIndex...].firstIndex(of: character) else {
+                return false
+            }
+            searchIndex = normalizedText.index(after: found)
+        }
+        return true
+    }
+
+    private static func normalizeForSearch(_ value: String) -> String {
+        value
+            .folding(options: [.caseInsensitive, .widthInsensitive, .diacriticInsensitive], locale: .current)
+            .replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 }
