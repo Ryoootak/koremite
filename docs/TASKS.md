@@ -26,6 +26,7 @@
 - Repeating the same `sourceHash` returned `costInfo.cacheHit: true`.
 - Vercel test page and `/api/minutes-test` proxy added. Vercel only needs `KOREMITE_API_BASE_URL`; Gemini keys stay in Cloudflare.
 - GitHub Actions CI added for backend checks, Vercel function syntax, and iOS simulator build/test.
+- GitHub Actions CI run #2 passed on `main`: backend checks, Vercel syntax, iOS simulator build, and XCTest.
 
 ## Next
 - Open in Xcode and run an iOS Simulator build.
@@ -34,7 +35,7 @@
 - Exercise real AI provider in staging Worker with a test secret.
 - Wire iOS `RemoteAIClient` to the staging URL behind a build/config switch.
 - Confirm Vercel Preview deployment can call Cloudflare staging from the browser test page.
-- Watch the first GitHub Actions iOS run and adjust simulator/Xcode settings if the hosted runner differs.
+- Expand iOS XCTest coverage beyond utility and mock client tests.
 - Replace in-memory Worker cache/rate-limit fallback with KV/Durable Object if production traffic requires cross-isolate consistency.
 
 ## Backlog
