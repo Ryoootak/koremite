@@ -431,13 +431,13 @@
 
       const state = {
         phase: "home",
-        transcript: "今日は住宅購入について打ち合わせました。次回までに見積もりと住宅ローンの条件を確認します。金額とスケジュールは家族に共有して、来週もう一度相談します。",
+        transcript: "",
         speakerDraft: "",
         otherSpeakers: [],
         selectedSpeakers: ["me", "staff"],
         focus: "decision",
         category: "住宅",
-        selectedFolderName: "住宅",
+        selectedFolderName: null,
         note: "",
         result: null,
         resultTab: "summary",
@@ -563,10 +563,10 @@
       function loadFolders() {
         try {
           const raw = localStorage.getItem(foldersStorageKey);
-          const parsed = raw ? JSON.parse(raw) : ["住宅", "仕事", "家庭"];
-          return Array.isArray(parsed) ? parsed : ["住宅", "仕事", "家庭"];
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
         } catch (_) {
-          return ["住宅", "仕事", "家庭"];
+          return [];
         }
       }
 

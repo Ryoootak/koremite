@@ -33,7 +33,7 @@ Markdownや説明文を付けず、JSONオブジェクトのみを返す。
 
 ```text
 カテゴリ: {{category}}
-話者候補: {{speakers}}
+話者情報: {{speakers}}
 重視ポイント: {{focusPoints}}
 処理モード: {{processingMode}}
 

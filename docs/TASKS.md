@@ -43,6 +43,7 @@
 - **話者入力UX改善**: 入力画面の話者欄を任意項目化し、「自分」を固定、相手は1人ずつ追加/削除するUIへ変更。カンマ区切り入力を廃止
 - **AIプロンプト日本語化**: BackendのGemini向けシステム/ユーザープロンプトと`docs/AI_PROMPTS.md`を日本語指示に統一
 - **ロゴ配置**: 提供された`logo.png`をiOSアセットカタログとVercel Previewのヘッダー/ホームに配置
+- **網羅チェック修正**: Xcodeプロジェクトへの追加Swiftファイル登録漏れを修正、Cloudflare本番varsのモデルplaceholderをGeminiモデルに更新、Vercel Previewの初期ダミー入力/初期フォルダをiOSに合わせて空に変更
 
 ## 次のステップ
 - Xcodeでビルドし、iOSシミュレータで動作確認

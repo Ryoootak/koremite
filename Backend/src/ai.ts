@@ -178,7 +178,7 @@ function systemPrompt(): string {
 
 function userPrompt(request: GenerateRequest, sourceForAI: string, processingMode: ProcessingMode): string {
   return `カテゴリ: ${request.category}
-話者候補: ${request.speakers.join(", ") || "不明"}
+話者情報: ${request.speakers.join(", ") || "自分のみ"}
 重視ポイント: ${request.focusPoints.join(", ") || "指定なし"}
 処理モード: ${processingMode}
 

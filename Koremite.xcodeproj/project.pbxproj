@@ -25,6 +25,9 @@
 		100000000000000000000110 /* TextUtilitiesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000010 /* TextUtilitiesTests.swift */; };
 		100000000000000000000111 /* MockAIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000011 /* MockAIClientTests.swift */; };
 		100000000000000000000112 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000012 /* Assets.xcassets */; };
+		100000000000000000000113 /* FolderRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000013 /* FolderRecord.swift */; };
+		100000000000000000000114 /* ArchiveItemListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000014 /* ArchiveItemListView.swift */; };
+		100000000000000000000115 /* FolderPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000015 /* FolderPickerSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +59,9 @@
 		100000000000000000000010 /* TextUtilitiesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextUtilitiesTests.swift; sourceTree = "<group>"; };
 		100000000000000000000011 /* MockAIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAIClientTests.swift; sourceTree = "<group>"; };
 		100000000000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		100000000000000000000013 /* FolderRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/FolderRecord.swift; sourceTree = "<group>"; };
+		100000000000000000000014 /* ArchiveItemListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ArchiveItemListView.swift; sourceTree = "<group>"; };
+		100000000000000000000015 /* FolderPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/FolderPickerSheet.swift; sourceTree = "<group>"; };
 		100000000000000000000201 /* Koremite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Koremite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		100000000000000000000202 /* KoremiteTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KoremiteTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -94,6 +100,7 @@
 				100000000000000000000002 /* KMDesignSystem.swift */,
 				100000000000000000000003 /* MinutesModels.swift */,
 				10000000000000000000000F /* ArchivedMinutesRecord.swift */,
+				100000000000000000000013 /* FolderRecord.swift */,
 				100000000000000000000004 /* AIClient.swift */,
 				100000000000000000000005 /* MockAIClient.swift */,
 				100000000000000000000006 /* RemoteAIClient.swift */,
@@ -105,6 +112,8 @@
 				10000000000000000000000C /* LoadingView.swift */,
 				10000000000000000000000D /* ResultView.swift */,
 				10000000000000000000000E /* ArchiveView.swift */,
+				100000000000000000000014 /* ArchiveItemListView.swift */,
+				100000000000000000000015 /* FolderPickerSheet.swift */,
 				100000000000000000000012 /* Assets.xcassets */,
 			);
 			path = Koremite;
@@ -243,6 +252,9 @@
 				10000000000000000000010C /* LoadingView.swift in Sources */,
 				10000000000000000000010D /* ResultView.swift in Sources */,
 				10000000000000000000010E /* ArchiveView.swift in Sources */,
+				100000000000000000000113 /* FolderRecord.swift in Sources */,
+				100000000000000000000114 /* ArchiveItemListView.swift in Sources */,
+				100000000000000000000115 /* FolderPickerSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

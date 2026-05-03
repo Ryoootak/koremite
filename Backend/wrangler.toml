@@ -3,8 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2026-05-01"
 
 [vars]
-AI_MODEL_FAST = "fast-model-placeholder"
-AI_MODEL_QUALITY = "quality-model-placeholder"
+AI_MODEL_FAST = "gemini-2.5-flash-lite"
+AI_MODEL_QUALITY = "gemini-2.5-flash"
 MAX_INPUT_CHARS = "30000"
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com"
 AI_TIMEOUT_MS = "45000"
