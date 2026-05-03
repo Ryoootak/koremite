@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-and-vercel:
+    name: Backend and Vercel checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: Backend
+
+      - name: Backend tests
+        run: npm test
+        working-directory: Backend
+
+      - name: Backend typecheck
+        run: npm run typecheck
+        working-directory: Backend
+
+      - name: Vercel function syntax check
+        run: npm run check:vercel
+
+  ios:
+    name: iOS build and tests
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: |
+          xcodebuild -version
+          xcode-select -p
+
+      - name: Select available iPhone simulator
+        run: |
+          DEVICE_NAME="$(xcrun simctl list devices available | awk -F '[()]' '/iPhone/ && /Shutdown|Booted/ {gsub(/^ +| +$/,"",$1); print $1; exit}')"
+          if [ -z "$DEVICE_NAME" ]; then
+            echo "No available iPhone simulator found"
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "Using simulator: $DEVICE_NAME"
+          echo "IOS_DESTINATION=platform=iOS Simulator,name=$DEVICE_NAME" >> "$GITHUB_ENV"
+
+      - name: List project
+        run: xcodebuild -list -project Koremite.xcodeproj
+
+      - name: Build app for simulator
+        run: |
+          xcodebuild \
+            -project Koremite.xcodeproj \
+            -scheme Koremite \
+            -destination "$IOS_DESTINATION" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Run XCTest
+        run: |
+          xcodebuild \
+            -project Koremite.xcodeproj \
+            -scheme Koremite \
+            -destination "$IOS_DESTINATION" \
+            CODE_SIGNING_ALLOWED=NO \
+            test

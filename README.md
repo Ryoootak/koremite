@@ -76,6 +76,7 @@ Required backend variables:
 - Backend: `cd Backend && npm test`.
 - Backend typecheck: `cd Backend && npm run typecheck`.
 - Vercel test function syntax: `npm run check:vercel`.
+- GitHub Actions: `.github/workflows/ci.yml` runs backend tests/typecheck, Vercel function syntax check, and iOS simulator build/test on every push/PR.
 
 Current local limitation: `xcodebuild` cannot run while `xcode-select -p` points to `/Library/Developer/CommandLineTools`. Later verification:
 
@@ -88,6 +89,7 @@ xcodebuild test -project Koremite.xcodeproj -scheme Koremite -destination 'platf
 ## Directory
 - `Koremite/`: iOS app
 - `Backend/`: API worker
+- `.github/workflows/`: CI for GitHub Actions
 - `docs/`: product and engineering docs
 
 ## Development Notes
