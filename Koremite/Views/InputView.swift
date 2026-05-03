@@ -125,7 +125,7 @@ struct InputView: View {
                     .foregroundStyle(KMColor.moss)
                 }
 
-                Text("ここで選んだフォルダに、生成後の保存先が初期設定されます。")
+                Text("ここで選んだフォルダに保存します。生成後にも変更できます。")
                     .font(.caption)
                     .foregroundStyle(KMColor.secondaryText)
 

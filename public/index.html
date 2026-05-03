@@ -428,6 +428,8 @@
         note: "",
         result: null,
         resultTab: "summary",
+        resultBackPhase: "setup",
+        setupRendered: false,
         toast: null,
         flying: false,
         archives: loadArchives(),
@@ -603,6 +605,7 @@
         const len = state.transcript.length;
         const hint = len < 1200 ? "短めの文字起こしです。まとめて整理します。" : len < 8000 ? "共有版と議事録をまとめて作成します。" : "長文のため、段階的に整理します。";
         const speakers = currentSpeakers();
+        const sheetAnimation = state.setupRendered ? "none" : "km-sheet-in 320ms cubic-bezier(.32,.72,.4,1)";
         screen.innerHTML = `
           <div class="share-backdrop">
             <div style="padding:118px 20px 0;font-size:32px;font-weight:700;letter-spacing:-0.02em">文字起こし</div>
@@ -615,7 +618,7 @@
             </div>
           </div>
 
-          <div class="share-sheet">
+          <div class="share-sheet" style="animation:${sheetAnimation}">
             <div style="height:100%;display:flex;flex-direction:column;background:var(--km-bg)">
               <div style="padding:18px 20px 0;display:flex;align-items:center;justify-content:space-between">
                 <button class="km-btn km-btn-ghost" data-action="home">キャンセル</button>
@@ -659,12 +662,12 @@
                   <div style="display:flex;gap:8px;flex-wrap:wrap">
                     ${focusChips.map((c) => `<button class="km-btn km-btn-chip" data-focus="${c.id}" data-on="${state.focus === c.id}">${c.label}</button>`).join("")}
                   </div>
-                  <div class="km-meta" style="margin-top:10px;animation:km-fade-up 200ms ease both">↳ ${focusChips.find((c) => c.id === state.focus)?.hint}</div>
+                  <div class="km-meta" style="margin-top:10px">↳ ${focusChips.find((c) => c.id === state.focus)?.hint}</div>
                 </div>
 
                 <div class="section">
                   <div class="section-title"><span class="km-eyebrow">03</span><div>保存先フォルダ</div></div>
-                  <div class="km-meta" style="margin-bottom:12px;margin-top:-8px">選んだフォルダに保存しやすくします</div>
+                  <div class="km-meta" style="margin-bottom:12px;margin-top:-8px">選んだフォルダに保存します。生成後にも変更できます</div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                     <button class="km-btn" data-folder-name="" style="background:${!state.selectedFolderName ? "var(--km-moss-bg)" : "var(--km-card)"};border:1px solid ${!state.selectedFolderName ? "var(--km-moss-line)" : "var(--km-stroke)"};color:${!state.selectedFolderName ? "var(--km-moss)" : "var(--km-text)"};border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;text-align:left;font-size:14px;font-weight:650">
                       ${icon("tray", 16)}<span style="flex:1">フォルダなし</span>${!state.selectedFolderName ? icon("check", 14) : ""}
@@ -703,6 +706,7 @@
             </div>
           </div>
         `;
+        state.setupRendered = true;
       }
 
       function renderGenerating() {
@@ -734,10 +738,12 @@
       function renderResult() {
         const result = state.result;
         const tabIndex = { summary: 0, minutes: 1, log: 2 }[state.resultTab] ?? 0;
+        const backAction = state.resultBackPhase === "archive" ? "archive" : "setup";
+        const backLabel = state.resultBackPhase === "archive" ? "アーカイブ" : "戻る";
         screen.innerHTML = `
           <div style="padding-top:56px;height:100%;position:relative;display:flex;flex-direction:column;background:var(--km-bg);overflow:hidden">
             <div style="padding:8px 16px 0;display:flex;align-items:center;justify-content:space-between">
-              <button class="km-btn km-btn-ghost" data-action="setup" style="display:inline-flex;align-items:center;gap:4px;padding:8px 6px">${icon("back", 18)}戻る</button>
+              <button class="km-btn km-btn-ghost" data-action="${backAction}" style="display:inline-flex;align-items:center;gap:4px;padding:8px 6px">${icon("back", 18)}${backLabel}</button>
               <div style="font-size:13px;font-weight:600;color:var(--km-text-3)">Koremite</div>
               <button class="km-btn km-btn-ghost" data-action="archive" style="color:var(--km-text-2)">${icon("more", 18)}</button>
             </div>
@@ -1104,6 +1110,8 @@
           state.result = json;
           state.resultTab = "summary";
           state.logQuery = "";
+          state.logQueryInput = "";
+          state.resultBackPhase = "setup";
           state.phase = "result";
         } catch (error) {
           state.phase = "setup";
@@ -1186,10 +1194,10 @@
         if (!target) return;
 
         const action = target.dataset.action;
-        if (action === "start") { state.phase = "setup"; render(); }
+        if (action === "start") { state.phase = "setup"; state.setupRendered = false; render(); }
         if (action === "home") { state.phase = "home"; render(); }
         if (action === "archive") { state.phase = "archive"; render(); }
-        if (action === "setup") { state.phase = "setup"; render(); }
+        if (action === "setup") { state.phase = "setup"; state.setupRendered = false; render(); }
         if (action === "clear-note") { state.note = ""; render(); }
         if (action === "generate") generate();
         if (action === "copy") copyCurrent();
@@ -1276,6 +1284,7 @@
             state.resultTab = "summary";
             state.logQuery = "";
             state.logQueryInput = "";
+            state.resultBackPhase = "archive";
             state.phase = "result";
             render();
           }
