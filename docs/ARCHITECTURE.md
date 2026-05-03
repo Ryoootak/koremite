@@ -14,6 +14,7 @@ iOS SwiftUIアプリ -> Koremiteバックエンド -> AIプロバイダー
 - **Models**: 固定リクエスト/レスポンススキーマ
 - **Services**: `AIClient`・`MockAIClient`・`RemoteAIClient`・アーカイブストレージ
 - **DesignSystem**: カラー・余白・タイポグラフィ・カード・チップ・ボタン
+- **Assets**: `Assets.xcassets`にiOS表示用のロゴなどを保持する。横長ロゴは`KoremiteLogo`
 
 ## データフロー
 1. ユーザーが文字起こしテキストを貼り付ける

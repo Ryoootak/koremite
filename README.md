@@ -2,7 +2,7 @@
 
 Koremiteは、貼り付けた文字起こしテキストを送りやすく・見返しやすい議事録に整えるiPhoneアプリです。
 
-MVPの使い方はシンプルです。ボイスメモや別のアプリで文字起こしされたテキストをコピーし、Koremiteに貼り付け、会議の用途と重視ポイントを選んで議事録を生成、コピー/共有/保存する。
+MVPの使い方はシンプルです。ボイスメモや別のアプリで文字起こしされたテキストをコピーし、Koremiteに貼り付け、保存先フォルダと重視ポイントを選んで議事録を生成、コピー/共有/保存する。
 
 ## できること
 - 貼り付けた文字起こしテキストを受け付ける
@@ -89,7 +89,9 @@ xcodebuild test -project Koremite.xcodeproj -scheme Koremite -destination 'platf
 
 ## ディレクトリ構成
 - `Koremite/`: iOSアプリ
+- `Koremite/Assets.xcassets/`: iOSアセット。横長ロゴは`KoremiteLogo`
 - `Backend/`: APIワーカー
+- `public/`: Vercel Preview。`public/logo.png`をヘッダー/ホームのロゴに使う
 - `.github/workflows/`: GitHub Actions CI
 - `docs/`: プロダクト・エンジニアリングドキュメント
 
