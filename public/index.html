@@ -431,10 +431,12 @@
         flying: false,
         archives: loadArchives(),
         folders: loadFolders(),
+        archiveQueryInput: "",
         archiveQuery: "",
         archiveFolder: "all",
         showFolderPicker: false,
         newFolderDraft: "",
+        logQueryInput: "",
         logQuery: "",
         editingLine: null,
         speakerOverrides: {}
@@ -791,6 +793,7 @@
         if (state.resultTab === "log") {
           const entries = result.fullLog || [];
           const q = state.logQuery || "";
+          const inputValue = state.logQueryInput ?? q;
           const indexedEntries = entries.map((entry, index) => ({ entry, index }));
           const filtered = q
             ? indexedEntries.filter(({ entry }) => matchesFuzzy(`${entry.speaker || ""} ${entry.text || ""}`, q))
@@ -799,8 +802,9 @@
             <div style="display:flex;flex-direction:column;gap:10px;animation:km-fade-up 280ms ease">
               <div style="background:var(--km-bg-2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:var(--km-text-3)">
                 ${icon("search", 15)}
-                <input id="logQuery" value="${escapeHTML(q)}" placeholder="発言・話者を検索" style="flex:1;font-size:14px;font-family:inherit" />
-                ${q ? `<button data-action="clear-log-search" class="km-btn" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
+                <input id="logQuery" type="search" value="${escapeHTML(inputValue)}" placeholder="発言・話者を検索" style="flex:1;font-size:14px;font-family:inherit" />
+                <button data-action="commit-log-search" class="km-btn" style="background:transparent;color:var(--km-moss);padding:0;font-size:12px;font-weight:700">検索</button>
+                ${inputValue || q ? `<button data-action="clear-log-search" class="km-btn" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
               </div>
               ${filtered.length === 0
                 ? `<div class="km-meta" style="text-align:center;padding:24px">${q ? "検索結果なし" : "全量ログがありません"}</div>`
@@ -917,6 +921,7 @@
       }
 
       function renderArchive() {
+        const archiveInputValue = state.archiveQueryInput ?? state.archiveQuery;
         const all = state.archives.map((item) => ({
           ...item,
           date: item.savedAt ? new Date(item.savedAt).toLocaleDateString("ja-JP") : "保存済み"
@@ -956,8 +961,9 @@
             <div style="padding:0 20px 8px">
               <div style="background:var(--km-bg-2);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;color:var(--km-text-3)">
                 ${icon("search", 16)}
-                <input id="archiveQuery" value="${escapeHTML(state.archiveQuery)}" placeholder="会話を横断検索（金額、5月、見積もり…）" style="flex:1;font-size:14px;font-family:inherit" />
-                ${state.archiveQuery ? `<button class="km-btn" data-action="clear-search" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
+                <input id="archiveQuery" type="search" value="${escapeHTML(archiveInputValue)}" placeholder="会話を横断検索（金額、5月、見積もり…）" style="flex:1;font-size:14px;font-family:inherit" />
+                <button class="km-btn" data-action="commit-archive-search" style="background:transparent;color:var(--km-moss);padding:0;font-size:12px;font-weight:700">検索</button>
+                ${archiveInputValue || state.archiveQuery ? `<button class="km-btn" data-action="clear-search" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
               </div>
             </div>
             ${state.archiveQuery ? "" : `
@@ -1112,18 +1118,32 @@
           if (count) count.textContent = `${state.note.length} / 200`;
         }
         if (event.target.id === "archiveQuery") {
-          state.archiveQuery = event.target.value;
-          renderPreservingFocus("archiveQuery");
+          state.archiveQueryInput = event.target.value;
         }
         if (event.target.id === "logQuery") {
-          state.logQuery = event.target.value;
-          renderPreservingFocus("logQuery");
+          state.logQueryInput = event.target.value;
         }
         if (event.target.id === "newFolderInput") {
           state.newFolderDraft = event.target.value;
         }
         if (event.target.id === "addFolderInput") {
           state.newFolderDraft = event.target.value;
+        }
+      });
+
+      screen.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        if (event.target.id === "archiveQuery") {
+          event.preventDefault();
+          state.archiveQuery = event.target.value;
+          state.archiveQueryInput = event.target.value;
+          renderPreservingFocus("archiveQuery");
+        }
+        if (event.target.id === "logQuery") {
+          event.preventDefault();
+          state.logQuery = event.target.value;
+          state.logQueryInput = event.target.value;
+          renderPreservingFocus("logQuery");
         }
       });
 
@@ -1141,8 +1161,10 @@
         if (action === "copy") copyCurrent();
         if (action === "save") { state.showFolderPicker = true; render(); }
         if (action === "close-folder-picker") { state.showFolderPicker = false; state.newFolderDraft = ""; render(); }
-        if (action === "clear-search") { state.archiveQuery = ""; render(); }
-        if (action === "clear-log-search") { state.logQuery = ""; render(); }
+        if (action === "commit-archive-search") { state.archiveQuery = state.archiveQueryInput || ""; renderPreservingFocus("archiveQuery"); }
+        if (action === "commit-log-search") { state.logQuery = state.logQueryInput || ""; renderPreservingFocus("logQuery"); }
+        if (action === "clear-search") { state.archiveQueryInput = ""; state.archiveQuery = ""; render(); }
+        if (action === "clear-log-search") { state.logQueryInput = ""; state.logQuery = ""; render(); }
         if (action === "close-sheet") { state.editingLine = null; render(); }
         if (action === "add-folder") { state.showAddFolderSheet = true; state.newFolderDraft = ""; render(); }
         if (action === "close-add-folder") { state.showAddFolderSheet = false; state.newFolderDraft = ""; render(); }
@@ -1174,6 +1196,7 @@
         if (target.dataset.resultTab) {
           state.resultTab = target.dataset.resultTab;
           state.logQuery = "";
+          state.logQueryInput = "";
           render();
         }
         if (target.dataset.archiveFolder) { state.archiveFolder = target.dataset.archiveFolder; render(); }
@@ -1199,6 +1222,7 @@
             state.result = item;
             state.resultTab = "summary";
             state.logQuery = "";
+            state.logQueryInput = "";
             state.phase = "result";
             render();
           }

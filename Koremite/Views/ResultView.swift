@@ -183,9 +183,10 @@ private struct DetailedMinutesView: View {
 private struct FullLogView: View {
     let entries: [FullLogEntry]
     @State private var query = ""
+    @State private var committedQuery = ""
 
     private var filtered: [FullLogEntry] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = committedQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return entries }
         return entries.filter {
             TextUtilities.matchesFuzzy("\($0.speaker) \($0.text)", query: trimmed)
@@ -200,9 +201,14 @@ private struct FullLogView: View {
                     .foregroundStyle(KMColor.tertiaryText)
                 TextField("発言・話者を検索", text: $query)
                     .textFieldStyle(.plain)
+                    .submitLabel(.search)
+                    .onSubmit {
+                        committedQuery = query
+                    }
                 if !query.isEmpty {
                     Button {
                         query = ""
+                        committedQuery = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundStyle(KMColor.tertiaryText)
@@ -212,6 +218,11 @@ private struct FullLogView: View {
             .padding(KMSpacing.sm)
             .background(KMColor.groupedBackground)
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .onChange(of: query) { _, newValue in
+                if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    committedQuery = ""
+                }
+            }
 
             if entries.isEmpty {
                 KMCard {

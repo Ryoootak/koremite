@@ -9,6 +9,7 @@ enum ArchiveDest: Hashable {
 struct ArchiveView: View {
     @EnvironmentObject private var archiveStore: ArchiveStore
     @State private var query = ""
+    @State private var committedQuery = ""
     @State private var showNewFolderSheet = false
     @State private var folderToDelete: FolderRecord?
     @State private var folderToRename: FolderRecord?
@@ -23,7 +24,7 @@ struct ArchiveView: View {
         // so the List switches from folder-hierarchy to flat-results exactly once at that
         // moment — not on every keystroke — preventing keyboard-focus loss.
         ArchiveBrowserContent(
-            query: query,
+            query: committedQuery,
             onNewFolder: { showNewFolderSheet = true },
             onDeleteFolder: { folder in
                 folderToDelete = folder
@@ -38,6 +39,14 @@ struct ArchiveView: View {
         .navigationTitle("保存済み議事録")
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $query, prompt: "タイトルや概要を検索")
+        .onSubmit(of: .search) {
+            committedQuery = query
+        }
+        .onChange(of: query) { _, newValue in
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                committedQuery = ""
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button { showNewFolderSheet = true } label: {

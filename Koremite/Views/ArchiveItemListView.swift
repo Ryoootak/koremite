@@ -4,6 +4,7 @@ struct ArchiveItemListView: View {
     let dest: ArchiveDest
     @EnvironmentObject private var archiveStore: ArchiveStore
     @State private var query = ""
+    @State private var committedQuery = ""
 
     private var navigationTitle: String {
         switch dest {
@@ -25,7 +26,7 @@ struct ArchiveItemListView: View {
     }
 
     private var displayItems: [MinutesResult] {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = committedQuery.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return baseItems }
         return baseItems.filter { result in
             let searchableText = [
@@ -70,7 +71,7 @@ struct ArchiveItemListView: View {
             .scrollContentBackground(.hidden)
             .overlay {
                 if displayItems.isEmpty {
-                    if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    if committedQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         ContentUnavailableView(
                             "議事録がありません",
                             systemImage: "tray",
@@ -89,6 +90,14 @@ struct ArchiveItemListView: View {
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.large)
         .searchable(text: $query, prompt: "タイトルや概要を検索")
+        .onSubmit(of: .search) {
+            committedQuery = query
+        }
+        .onChange(of: query) { _, newValue in
+            if newValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                committedQuery = ""
+            }
+        }
         // Register here too: when this view is pushed, it cannot reach ArchiveView's destinations
         .navigationDestination(for: MinutesResult.self) { result in
             ResultView(result: result)
