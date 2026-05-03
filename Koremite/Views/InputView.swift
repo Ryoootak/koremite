@@ -146,7 +146,7 @@ struct InputView: View {
 
     private func chipGrid<Data: RandomAccessCollection, Content: View>(
         _ data: Data,
-        @ViewBuilder content: (Data.Element) -> Content
+        @ViewBuilder content: @escaping (Data.Element) -> Content
     ) -> some View where Data.Element: Hashable {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 92), spacing: KMSpacing.sm)], alignment: .leading, spacing: KMSpacing.sm) {
             ForEach(Array(data), id: \.self) { item in
