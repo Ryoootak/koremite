@@ -97,16 +97,66 @@ struct InputView: View {
 
     private var speakerCard: some View {
         KMCard {
-            VStack(alignment: .leading, spacing: KMSpacing.sm) {
-                Text("話者候補")
-                    .font(.headline)
-                TextField("自分, 相手", text: $viewModel.speakersText)
-                    .textFieldStyle(.roundedBorder)
-                Text("カンマ区切りで入力できます。話者が不明な場合は仮ラベルで整理します。")
+            VStack(alignment: .leading, spacing: KMSpacing.md) {
+                HStack {
+                    Label("話していた人", systemImage: "person.2")
+                        .font(.headline)
+                    Spacer()
+                    Text("任意")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(KMColor.tertiaryText)
+                }
+                Text("自分は固定です。相手の名前が分かるときだけ追加してください。")
                     .font(.caption)
                     .foregroundStyle(KMColor.secondaryText)
+
+                VStack(alignment: .leading, spacing: KMSpacing.sm) {
+                    speakerChip(name: "自分", systemImage: "person.fill", removable: false)
+                    ForEach(viewModel.otherSpeakers, id: \.self) { speaker in
+                        speakerChip(name: speaker, systemImage: "person", removable: true)
+                    }
+                }
+
+                HStack(spacing: KMSpacing.sm) {
+                    TextField("例: 担当者、妻、田中さん", text: $viewModel.speakerDraft)
+                        .textFieldStyle(.roundedBorder)
+                        .submitLabel(.done)
+                        .onSubmit { viewModel.addSpeaker() }
+                    Button {
+                        viewModel.addSpeaker()
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                    .font(.title3)
+                    .foregroundStyle(KMColor.moss)
+                    .disabled(viewModel.speakerDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityLabel("話者を追加")
+                }
             }
         }
+    }
+
+    private func speakerChip(name: String, systemImage: String, removable: Bool) -> some View {
+        HStack(spacing: KMSpacing.sm) {
+            Image(systemName: systemImage)
+                .foregroundStyle(KMColor.moss)
+            Text(name)
+                .font(.subheadline.weight(.semibold))
+            Spacer()
+            if removable {
+                Button {
+                    viewModel.removeSpeaker(name)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(KMColor.tertiaryText)
+                }
+                .accessibilityLabel("\(name)を削除")
+            }
+        }
+        .padding(.horizontal, KMSpacing.sm)
+        .padding(.vertical, 9)
+        .background(KMColor.groupedBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var folderCard: some View {

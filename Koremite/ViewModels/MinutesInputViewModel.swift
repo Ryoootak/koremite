@@ -3,7 +3,8 @@ import Foundation
 @MainActor
 final class MinutesInputViewModel: ObservableObject {
     @Published var transcript = ""
-    @Published var speakersText = "自分, 相手"
+    @Published var speakerDraft = ""
+    @Published var otherSpeakers: [String] = []
     @Published var category: MeetingCategory = .housing
     @Published var selectedFolderID: String?
     @Published var selectedFocusPoints: Set<FocusPoint> = [.decisions, .todos, .schedule, .concerns]
@@ -51,6 +52,24 @@ final class MinutesInputViewModel: ObservableObject {
         }
     }
 
+    var speakers: [String] {
+        ["自分"] + otherSpeakers
+    }
+
+    func addSpeaker() {
+        let name = speakerDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty, name != "自分", !otherSpeakers.contains(name) else {
+            speakerDraft = ""
+            return
+        }
+        otherSpeakers.append(name)
+        speakerDraft = ""
+    }
+
+    func removeSpeaker(_ name: String) {
+        otherSpeakers.removeAll { $0 == name }
+    }
+
     func updateCategoryFromFolderName(_ folderName: String?) {
         let name = folderName ?? ""
         if name.contains("住宅") || name.contains("家") || name.contains("ローン") {
@@ -81,7 +100,7 @@ final class MinutesInputViewModel: ObservableObject {
         let request = GenerateMinutesRequest(
             transcript: trimmed,
             category: category,
-            speakers: speakersText.split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) },
+            speakers: speakers,
             focusPoints: Array(selectedFocusPoints),
             clientRequestId: UUID().uuidString,
             sourceHash: TextUtilities.sourceHash(for: trimmed)

@@ -420,7 +420,8 @@
       const state = {
         phase: "home",
         transcript: "今日は住宅購入について打ち合わせました。次回までに見積もりと住宅ローンの条件を確認します。金額とスケジュールは家族に共有して、来週もう一度相談します。",
-        speakersText: "自分, 担当者",
+        speakerDraft: "",
+        otherSpeakers: [],
         selectedSpeakers: ["me", "staff"],
         focus: "decision",
         category: "住宅",
@@ -516,8 +517,8 @@
       }
 
       function currentSpeakers() {
-        const names = state.speakersText.split(",").map((name) => name.trim()).filter(Boolean);
-        return (names.length ? names : ["自分", "相手"]).slice(0, 4).map((name, index) => ({
+        const names = ["自分", ...state.otherSpeakers].filter(Boolean);
+        return names.slice(0, 5).map((name, index) => ({
           ...(speakerPalette[index] || speakerPalette[0]),
           id: `s${index}`,
           name,
@@ -643,16 +644,20 @@
                 </div>
 
                 <div class="section">
-                  <div class="section-title"><span class="km-eyebrow">01</span><div>誰が話してる？</div></div>
-                  <div class="km-meta" style="margin-bottom:12px;margin-top:-8px">カンマ区切りで編集できます</div>
-                  <div style="border:1px solid var(--km-stroke);border-radius:12px;background:var(--km-card);padding:10px 12px;margin-bottom:10px">
-                    <input id="speakersText" value="${escapeHTML(state.speakersText)}" placeholder="自分, 相手" style="width:100%;font-size:14px" />
-                  </div>
-                  <div style="display:flex;gap:10px;flex-wrap:wrap">
-                    ${speakers.map((s) => `
-                      <button class="km-btn speaker-chip" data-speaker="${s.id}" style="background:var(--km-moss-bg);border:1px solid var(--km-moss-line);color:var(--km-moss);border-radius:999px;padding:6px 12px 6px 6px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600">
-                        <span class="km-speaker-dot" style="background:var(--km-moss);color:#fff">${icon("check", 14)}</span>${escapeHTML(s.name)}
+                  <div class="section-title"><span class="km-eyebrow">01</span><div>話していた人 <span style="color:var(--km-text-3);font-weight:500">（任意）</span></div></div>
+                  <div class="km-meta" style="margin-bottom:12px;margin-top:-8px">自分は固定。相手は分かるときだけ追加してください</div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+                    <div style="background:var(--km-moss-bg);border:1px solid var(--km-moss-line);color:var(--km-moss);border-radius:999px;padding:6px 12px 6px 8px;display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:650">
+                      <span class="km-speaker-dot" style="background:var(--km-moss);color:#fff">自</span>自分
+                    </div>
+                    ${state.otherSpeakers.map((name) => `
+                      <button class="km-btn" data-remove-speaker="${escapeHTML(name)}" style="background:var(--km-card);border:1px solid var(--km-stroke);color:var(--km-text);border-radius:999px;padding:6px 10px;display:inline-flex;align-items:center;gap:7px;font-size:14px;font-weight:650">
+                        ${icon("x", 13)}${escapeHTML(name)}
                       </button>`).join("")}
+                  </div>
+                  <div style="border:1px solid var(--km-stroke);border-radius:12px;background:var(--km-card);padding:9px 10px;display:flex;align-items:center;gap:8px">
+                    <input id="speakerDraft" value="${escapeHTML(state.speakerDraft)}" placeholder="例: 担当者、妻、田中さん" style="flex:1;font-size:14px" />
+                    <button class="km-btn" data-action="add-speaker" style="background:var(--km-moss-bg);color:var(--km-moss);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700">追加</button>
                   </div>
                 </div>
 
@@ -1065,10 +1070,8 @@
 
       function syncInputs() {
         const transcript = document.querySelector("#transcript");
-        const speakersText = document.querySelector("#speakersText");
         const note = document.querySelector("#note");
         if (transcript) state.transcript = transcript.value;
-        if (speakersText) state.speakersText = speakersText.value;
         if (note) state.note = note.value;
       }
 
@@ -1144,13 +1147,23 @@
         ].join("\n");
       }
 
+      function addSpeakerFromDraft() {
+        const input = document.querySelector("#speakerDraft");
+        const name = (input?.value || state.speakerDraft).trim();
+        if (name && name !== "自分" && !state.otherSpeakers.includes(name)) {
+          state.otherSpeakers.push(name);
+        }
+        state.speakerDraft = "";
+        renderPreservingFocus("speakerDraft");
+      }
+
       screen.addEventListener("input", (event) => {
         if (event.target.id === "transcript") {
           state.transcript = event.target.value;
           const count = document.querySelector("#count");
           if (count) count.textContent = state.transcript.length;
         }
-        if (event.target.id === "speakersText") state.speakersText = event.target.value;
+        if (event.target.id === "speakerDraft") state.speakerDraft = event.target.value;
         if (event.target.id === "note") {
           state.note = event.target.value;
           const count = document.querySelector("#noteCount");
@@ -1175,6 +1188,10 @@
 
       screen.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
+        if (event.target.id === "speakerDraft") {
+          event.preventDefault();
+          addSpeakerFromDraft();
+        }
         if (event.target.id === "archiveQuery") {
           event.preventDefault();
           state.archiveQuery = event.target.value;
@@ -1190,7 +1207,7 @@
       });
 
       screen.addEventListener("click", (event) => {
-        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-folder-name],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder],[data-delete-folder]");
+        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-folder-name],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder],[data-delete-folder],[data-remove-speaker]");
         if (!target) return;
 
         const action = target.dataset.action;
@@ -1199,6 +1216,7 @@
         if (action === "archive") { state.phase = "archive"; render(); }
         if (action === "setup") { state.phase = "setup"; state.setupRendered = false; render(); }
         if (action === "clear-note") { state.note = ""; render(); }
+        if (action === "add-speaker") addSpeakerFromDraft();
         if (action === "generate") generate();
         if (action === "copy") copyCurrent();
         if (action === "save") { state.showFolderPicker = true; render(); }
@@ -1273,6 +1291,12 @@
           persistFolders();
           persistArchives();
           if (state.archiveFolder === folderName) state.archiveFolder = "all";
+          render();
+        }
+
+        if (target.dataset.removeSpeaker) {
+          const name = target.dataset.removeSpeaker;
+          state.otherSpeakers = state.otherSpeakers.filter((speaker) => speaker !== name);
           render();
         }
 
