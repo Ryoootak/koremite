@@ -52,9 +52,11 @@ struct InputView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: KMSpacing.xs) {
-            Text("Koremite")
-                .font(.largeTitle.bold())
-                .foregroundStyle(KMColor.text)
+            Image("KoremiteLogo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 190)
+                .accessibilityLabel("Koremite")
             Text("文字起こしを貼り付けて、送れる議事録に整えます。")
                 .font(.subheadline)
                 .foregroundStyle(KMColor.secondaryText)

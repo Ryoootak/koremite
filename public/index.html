@@ -264,6 +264,18 @@
         min-width: 0;
       }
 
+      .km-logo {
+        display: block;
+        width: 148px;
+        height: auto;
+      }
+
+      .km-logo-small {
+        display: block;
+        width: 92px;
+        height: auto;
+      }
+
       @keyframes km-pulse {
         0%, 100% { opacity: 0.45; transform: scale(1); }
         50% { opacity: 1; transform: scale(1.06); }
@@ -574,10 +586,11 @@
         screen.innerHTML = `
           <div style="padding-top:56px;height:100%;display:flex;flex-direction:column;background:var(--km-bg)">
             <div style="padding:8px 20px 0;display:flex;justify-content:flex-end">
-              <div style="font-size:13px;font-weight:600;color:var(--km-text-3)">Koremite.</div>
+              <img src="/logo.png" alt="Koremite" class="km-logo-small" />
             </div>
             <div style="padding:44px 24px 0">
-              <div class="km-eyebrow" style="color:var(--km-moss)">これみて</div>
+              <img src="/logo.png" alt="Koremite" class="km-logo" />
+              <div class="km-eyebrow" style="color:var(--km-moss);margin-top:12px">これみて</div>
               <div style="margin-top:6px;font-size:30px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;text-wrap:balance">
                 説明しなくていい、<br/>あとで揉めない。
               </div>
@@ -623,7 +636,7 @@
             <div style="height:100%;display:flex;flex-direction:column;background:var(--km-bg)">
               <div style="padding:18px 20px 0;display:flex;align-items:center;justify-content:space-between">
                 <button class="km-btn km-btn-ghost" data-action="home">キャンセル</button>
-                <div style="font-size:13px;font-weight:600;color:var(--km-text-3)">Koremite に共有</div>
+                <img src="/logo.png" alt="Koremite" class="km-logo-small" />
                 <div style="width:74px"></div>
               </div>
 
@@ -749,7 +762,7 @@
           <div style="padding-top:56px;height:100%;position:relative;display:flex;flex-direction:column;background:var(--km-bg);overflow:hidden">
             <div style="padding:8px 16px 0;display:flex;align-items:center;justify-content:space-between">
               <button class="km-btn km-btn-ghost" data-action="${backAction}" style="display:inline-flex;align-items:center;gap:4px;padding:8px 6px">${icon("back", 18)}${backLabel}</button>
-              <div style="font-size:13px;font-weight:600;color:var(--km-text-3)">Koremite</div>
+              <img src="/logo.png" alt="Koremite" class="km-logo-small" />
               <button class="km-btn km-btn-ghost" data-action="archive" style="color:var(--km-text-2)">${icon("more", 18)}</button>
             </div>
             <div style="padding:6px 20px 14px">
