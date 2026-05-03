@@ -211,7 +211,7 @@
 
       .km-segment {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         background: var(--km-bg-2);
         border-radius: 10px;
         padding: 3px;
@@ -222,7 +222,7 @@
         position: absolute;
         top: 3px;
         bottom: 3px;
-        width: calc((100% - 6px) / 3);
+        width: calc((100% - 6px) / 2);
         border-radius: 8px;
         background: #fff;
         box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 0 0 0.5px rgba(0,0,0,0.04);
@@ -230,7 +230,6 @@
       }
 
       .km-segment-thumb[data-i="1"] { transform: translateX(100%); }
-      .km-segment-thumb[data-i="2"] { transform: translateX(200%); }
 
       .km-segment button {
         z-index: 1;
@@ -399,6 +398,7 @@
 
     <script>
       const screen = document.querySelector("#screen");
+      const archiveStorageKey = "koremite.webPreview.archives.v1";
       const maxInput = 50000;
       const focusChips = [
         { id: "decision", label: "決めごと", hint: "決定事項・合意した内容" },
@@ -428,7 +428,7 @@
         resultTab: "summary",
         toast: null,
         flying: false,
-        archives: [],
+        archives: loadArchives(),
         archiveQuery: "",
         archiveFolder: "住宅",
         editingLine: null,
@@ -636,7 +636,8 @@
 
       function renderResult() {
         const result = state.result;
-        const tabIndex = { summary: 0, minutes: 1, log: 2 }[state.resultTab] || 0;
+        if (state.resultTab === "log") state.resultTab = "summary";
+        const tabIndex = { summary: 0, minutes: 1 }[state.resultTab] || 0;
         screen.innerHTML = `
           <div style="padding-top:56px;height:100%;position:relative;display:flex;flex-direction:column;background:var(--km-bg);overflow:hidden">
             <div style="padding:8px 16px 0;display:flex;align-items:center;justify-content:space-between">
@@ -653,16 +654,20 @@
                 <div class="km-segment-thumb" data-i="${tabIndex}"></div>
                 <button data-result-tab="summary" data-on="${state.resultTab === "summary"}">共有用</button>
                 <button data-result-tab="minutes" data-on="${state.resultTab === "minutes"}">議事録</button>
-                <button data-result-tab="log" data-on="${state.resultTab === "log"}">全量ログ</button>
               </div>
             </div>
             <div class="km-scroll" style="flex:1;padding:16px 20px 110px">
               ${renderResultBody(result)}
             </div>
             <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 28px;background:linear-gradient(to top,var(--km-bg) 65%,transparent)">
-              <button class="km-btn km-btn-primary" data-action="copy" style="width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px">
-                ${icon(state.resultTab === "summary" ? "plane" : "copy", 17)} ${state.resultTab === "summary" ? "コピーして送る" : "議事録をコピー"}
-              </button>
+              <div style="display:flex;gap:8px">
+                <button class="km-btn km-btn-primary" data-action="copy" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px">
+                  ${icon(state.resultTab === "summary" ? "plane" : "copy", 17)} ${state.resultTab === "summary" ? "コピーして送る" : "議事録をコピー"}
+                </button>
+                <button class="km-btn" data-action="save" style="width:82px;background:var(--km-card);border:1px solid var(--km-stroke);color:var(--km-text);border-radius:999px;font-size:15px;font-weight:700">
+                  保存
+                </button>
+              </div>
             </div>
             ${state.flying ? renderPaperPlane() : ""}
             ${state.toast ? `<div class="toast">${icon("check", 14)} ${escapeHTML(state.toast)}</div>` : ""}
@@ -708,22 +713,7 @@
           `;
         }
 
-        const entries = result.fullLog || [];
-        const speakers = currentSpeakers();
-        return `
-          <div style="display:flex;flex-direction:column;animation:km-fade-up 280ms ease">
-            <div class="km-card" style="padding:14px 16px;margin-bottom:14px">
-              <div class="km-eyebrow">全量ログ</div>
-              <div style="font-size:15px;font-weight:700;margin-top:4px">${escapeHTML(result.title || "生成結果")}</div>
-              <div style="margin-top:10px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:12.5px">
-                <span style="color:var(--km-text-3)">参加者</span>
-                <span style="display:inline-flex;gap:6px;flex-wrap:wrap">${speakers.map((s) => speakerBadge(s)).join("")}</span>
-              </div>
-            </div>
-            ${entries.map((line, i) => transcriptLine(line, i)).join("")}
-            ${result.confidenceWarnings?.length ? minutesCard("確認が必要な点", bulletList(result.confidenceWarnings)) : ""}
-          </div>
-        `;
+        return "";
       }
 
       function sectionLabel(title) {
@@ -794,6 +784,36 @@
         `;
       }
 
+      function loadArchives() {
+        try {
+          const raw = localStorage.getItem(archiveStorageKey);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function persistArchives() {
+        localStorage.setItem(archiveStorageKey, JSON.stringify(state.archives.slice(0, 100)));
+      }
+
+      function saveCurrentResult() {
+        if (!state.result) return;
+        const key = state.result.sourceHash || state.result.title + state.result.shareSummary?.text;
+        const existing = state.archives.findIndex((item) => (item.sourceHash || item.title + item.shareSummary?.text) === key);
+        const item = {
+          ...state.result,
+          savedAt: new Date().toISOString()
+        };
+        if (existing >= 0) state.archives.splice(existing, 1);
+        state.archives.unshift(item);
+        persistArchives();
+        state.toast = "保存しました";
+        render();
+        setTimeout(() => { state.toast = null; render(); }, 1800);
+      }
+
       function renderPaperPlane() {
         return `
           <div style="position:absolute;inset:0;pointer-events:none;z-index:50">
@@ -806,7 +826,7 @@
 
       function renderArchive() {
         const folders = ["住宅", "仕事", "家庭", "その他"];
-        const all = state.archives.map((item) => ({ ...item, folder: item.category || "その他", date: "保存済み" }));
+        const all = state.archives.map((item) => ({ ...item, folder: item.category || "その他", date: item.savedAt ? new Date(item.savedAt).toLocaleDateString("ja-JP") : "保存済み" }));
         const fallback = [
           { title: "リフォーム、洗面所の見積もり確認", folder: "住宅", date: "サンプル", shareSummary: { text: "見積もり確認と次回相談のサンプルです。" } },
           { title: "Q2の方針、上長との1on1", folder: "仕事", date: "サンプル", shareSummary: { text: "仕事カテゴリの保存例です。" } }
@@ -835,7 +855,7 @@
       }
 
       function archiveResults(items) {
-        return `<div style="padding:8px 20px"><div class="km-eyebrow" style="margin-bottom:10px">結果 ${items.length}件</div><div style="display:flex;flex-direction:column;gap:8px">${items.map(archiveRow).join("") || `<div class="km-meta" style="text-align:center;padding:24px">該当なし。</div>`}</div></div>`;
+        return `<div style="padding:8px 20px"><div class="km-eyebrow" style="margin-bottom:10px">結果 ${items.length}件</div><div style="display:flex;flex-direction:column;gap:8px">${items.map((item) => archiveRow(item)).join("") || `<div class="km-meta" style="text-align:center;padding:24px">該当なし。</div>`}</div></div>`;
       }
 
       function archiveFolders(folders, items) {
@@ -856,14 +876,15 @@
           <div style="padding:8px 20px">
             <div class="km-eyebrow" style="margin-bottom:10px">${state.archiveFolder}</div>
             <div style="display:flex;flex-direction:column;gap:8px">
-              ${items.filter((it) => (it.folder || it.category) === state.archiveFolder).map(archiveRow).join("") || `<div class="km-meta" style="text-align:center;padding:20px">まだ保存はありません</div>`}
+              ${items.filter((it) => (it.folder || it.category) === state.archiveFolder).map((item) => archiveRow(item)).join("") || `<div class="km-meta" style="text-align:center;padding:20px">まだ保存はありません</div>`}
             </div>
           </div>
         `;
       }
 
-      function archiveRow(item, index) {
-        return `<button class="km-card" data-open-archive="${index || 0}" style="padding:12px 14px;display:flex;align-items:center;gap:12px;border-color:${item.current ? "var(--km-moss-line)" : "var(--km-stroke)"};background:${item.current ? "var(--km-moss-bg)" : "var(--km-card)"};text-align:left;width:100%">
+      function archiveRow(item) {
+        const id = escapeHTML(item.sourceHash || item.savedAt || item.title);
+        return `<button class="km-card" data-open-archive="${id}" style="padding:12px 14px;display:flex;align-items:center;gap:12px;border-color:${item.current ? "var(--km-moss-line)" : "var(--km-stroke)"};background:${item.current ? "var(--km-moss-bg)" : "var(--km-card)"};text-align:left;width:100%">
           <div style="flex:1;min-width:0">
             <div style="font-size:14.5px;font-weight:600;line-height:1.4;text-wrap:pretty">${escapeHTML(item.title)}</div>
             <div class="km-meta" style="margin-top:4px;display:flex;gap:8px;align-items:center">
@@ -981,12 +1002,22 @@
         if (action === "clear-note") { state.note = ""; render(); }
         if (action === "generate") generate();
         if (action === "copy") copyCurrent();
+        if (action === "save") saveCurrentResult();
         if (action === "clear-search") { state.archiveQuery = ""; render(); }
         if (action === "close-sheet") { state.editingLine = null; render(); }
         if (target.dataset.focus) { state.focus = target.dataset.focus; render(); }
         if (target.dataset.category) { state.category = target.dataset.category; render(); }
         if (target.dataset.resultTab) { state.resultTab = target.dataset.resultTab; render(); }
         if (target.dataset.folder) { state.archiveFolder = target.dataset.folder; render(); }
+        if (target.dataset.openArchive) {
+          const item = state.archives.find((entry) => (entry.sourceHash || entry.savedAt || entry.title) === target.dataset.openArchive);
+          if (item) {
+            state.result = item;
+            state.resultTab = "summary";
+            state.phase = "result";
+            render();
+          }
+        }
         if (target.dataset.editLine) { state.editingLine = Number(target.dataset.editLine); render(); }
         if (target.dataset.pickSpeaker && state.editingLine !== null) {
           state.result.fullLog[state.editingLine].speaker = target.dataset.pickSpeaker;

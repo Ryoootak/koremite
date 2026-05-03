@@ -4,7 +4,7 @@
 Koremite
 
 ## One-Line Value
-Paste transcription text and turn it into a short shareable message, detailed minutes, and a full log.
+Paste transcription text and turn it into a short shareable message and detailed minutes.
 
 ## MVP Premise
 Koremite does not handle real audio. Users copy transcription text from iPhone Voice Memos or another app and paste it into Koremite. The app sends that text to the Koremite backend for AI processing.
@@ -20,7 +20,7 @@ Koremite does not handle real audio. Users copy transcription text from iPhone V
 3. Paste text.
 4. Select speakers, category, and focus points.
 5. Generate minutes.
-6. Review share summary, detailed minutes, and full log.
+6. Review share summary and detailed minutes.
 7. Copy, share with iOS share sheet, or save to archive.
 
 ## MVP Includes
@@ -31,7 +31,7 @@ Koremite does not handle real audio. Users copy transcription text from iPhone V
 - Focus points: 決定事項, やること, 金額, スケジュール, 懸念点, 感情
 - AI generation through backend
 - Loading, error, retry
-- Result tabs: 共有版, 議事録, 全量ログ
+- Result tabs: 共有版, 議事録
 - Copy minutes, copy/share summary, save
 - Local archive, search, delete
 - Privacy and App Store preparation docs

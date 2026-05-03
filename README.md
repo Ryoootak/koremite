@@ -8,7 +8,6 @@ The MVP workflow is simple: copy text transcribed by Voice Memos or another app,
 - Accepts pasted transcription text.
 - Generates a short shareable summary for LINE/messages.
 - Generates detailed meeting minutes.
-- Keeps a full text log for later fact checking.
 - Saves generated minutes locally.
 - Searches and deletes saved archives.
 

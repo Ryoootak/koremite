@@ -26,8 +26,6 @@ struct ResultView: View {
                         ShareSummaryView(summary: result.shareSummary)
                     case .minutes:
                         DetailedMinutesView(minutes: result.detailedMinutes)
-                    case .log:
-                        FullLogView(entries: result.fullLog)
                     }
 
                     Spacer(minLength: 96)
@@ -88,7 +86,6 @@ struct ResultView: View {
 private enum ResultTab: String, CaseIterable, Identifiable {
     case share
     case minutes
-    case log
 
     var id: String { rawValue }
 
@@ -98,8 +95,6 @@ private enum ResultTab: String, CaseIterable, Identifiable {
             return "共有版"
         case .minutes:
             return "議事録"
-        case .log:
-            return "全量ログ"
         }
     }
 }
@@ -140,27 +135,6 @@ private struct DetailedMinutesView: View {
             TodoBlock(items: minutes.todos)
             ListBlock(title: "重要な発言", items: minutes.importantRemarks)
             ListBlock(title: "次回に向けたメモ", items: minutes.nextMeetingNotes)
-        }
-    }
-}
-
-private struct FullLogView: View {
-    let entries: [FullLogEntry]
-
-    var body: some View {
-        VStack(spacing: KMSpacing.md) {
-            ForEach(entries) { entry in
-                KMCard {
-                    VStack(alignment: .leading, spacing: KMSpacing.sm) {
-                        Text(entry.speaker)
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(KMColor.moss)
-                        Text(entry.text)
-                            .lineSpacing(4)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-            }
         }
     }
 }

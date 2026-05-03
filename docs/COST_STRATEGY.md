@@ -16,7 +16,7 @@ Cost minimization is a core Koremite product value. Users should receive useful 
 - Compute source hash on-device and backend.
 - Reuse local archive results for matching source hash.
 - Reuse backend cache for matching source hash during `CACHE_TTL_SECONDS`.
-- Return share summary, detailed minutes, and full log in one response.
+- Return share summary and detailed minutes together in one response. The backend may keep schema-compatible log fields internally, but the user-facing MVP does not expose a full transcription tab.
 - Use fixed JSON schema to reduce parsing retries.
 - Chunk long text before final generation using `CHUNK_CHAR_LIMIT`.
 - Use fast/low-cost model for extraction and compression.

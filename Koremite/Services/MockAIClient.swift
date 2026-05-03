@@ -42,7 +42,7 @@ struct MockAIClient: AIClient {
             ),
             fullLog: [
                 FullLogEntry(speaker: firstSpeaker, text: request.transcript.prefix(220).description),
-                FullLogEntry(speaker: "Koremite", text: "長い原文はアーカイブと全量ログで確認できる前提です。")
+                FullLogEntry(speaker: "Koremite", text: "長い原文は、必要な要点に整理して議事録として確認できます。")
             ],
             category: category,
             confidenceWarnings: ["これは開発用MockAIClientの生成結果です。"],

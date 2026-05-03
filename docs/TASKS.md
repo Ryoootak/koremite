@@ -14,7 +14,7 @@
 - `Koremite.xcodeproj` added.
 - DesignSystem added with warm background, card, moss accent, chips, and primary button.
 - Input screen mock added with paste area, character count, long-text hint, speakers, category, focus points, and server-processing notice.
-- Loading and result screens added with 共有版 / 議事録 / 全量ログ tabs.
+- Loading and result screens added with 共有版 / 議事録 tabs.
 - Archive screen mock added with search and delete.
 - `AIClient`, `MockAIClient`, and `RemoteAIClient` added.
 - SwiftData archive added through `ArchivedMinutesRecord`.
@@ -25,6 +25,8 @@
 - Gemini API staging check passed with HTTP 200.
 - Repeating the same `sourceHash` returned `costInfo.cacheHit: true`.
 - Vercel test page and `/api/minutes-test` proxy added. Vercel only needs `KOREMITE_API_BASE_URL`; Gemini keys stay in Cloudflare.
+- Vercel web preview now persists saved minutes in browser `localStorage`.
+- Full transcription/log tab removed from user-facing result UI.
 - GitHub Actions CI added for backend checks, Vercel function syntax, and iOS simulator build/test.
 - GitHub Actions CI run #2 passed on `main`: backend checks, Vercel syntax, iOS simulator build, and XCTest.
 
