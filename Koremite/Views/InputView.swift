@@ -3,6 +3,7 @@ import SwiftUI
 struct InputView: View {
     @EnvironmentObject private var archiveStore: ArchiveStore
     @StateObject private var viewModel = MinutesInputViewModel()
+    @State private var showFolderPicker = false
 
     var body: some View {
         ZStack {
@@ -13,7 +14,7 @@ struct InputView: View {
                     header
                     transcriptCard
                     speakerCard
-                    categoryCard
+                    folderCard
                     focusCard
                     privacyNotice
                     generateButton
@@ -22,7 +23,14 @@ struct InputView: View {
             }
         }
         .navigationDestination(item: $viewModel.result) { result in
-            ResultView(result: result)
+            ResultView(result: result, suggestedFolderID: viewModel.selectedFolderID)
+        }
+        .sheet(isPresented: $showFolderPicker) {
+            FolderPickerSheet(currentFolderID: viewModel.selectedFolderID) { folderID in
+                let folderName = archiveStore.folders.first { $0.folderID == folderID }?.name
+                selectFolder(id: folderID, name: folderName)
+            }
+            .environmentObject(archiveStore)
         }
         .overlay {
             if viewModel.isGenerating {
@@ -101,19 +109,96 @@ struct InputView: View {
         }
     }
 
-    private var categoryCard: some View {
+    private var folderCard: some View {
         KMCard {
             VStack(alignment: .leading, spacing: KMSpacing.md) {
-                Text("用途")
-                    .font(.headline)
-                chipGrid(MeetingCategory.allCases.map(\.rawValue)) { title in
-                    KMChip(title: title, isSelected: viewModel.category.rawValue == title) {
-                        viewModel.category = MeetingCategory(rawValue: title) ?? .other
+                HStack {
+                    Label("保存先フォルダ", systemImage: "folder")
+                        .font(.headline)
+                    Spacer()
+                    Button {
+                        showFolderPicker = true
+                    } label: {
+                        Label("選択", systemImage: "folder.badge.plus")
+                            .font(.caption.weight(.semibold))
                     }
+                    .foregroundStyle(KMColor.moss)
+                }
+
+                Text("ここで選んだフォルダに、生成後の保存先が初期設定されます。")
+                    .font(.caption)
+                    .foregroundStyle(KMColor.secondaryText)
+
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 128), spacing: KMSpacing.sm)], alignment: .leading, spacing: KMSpacing.sm) {
+                    folderChip(name: "フォルダなし", systemImage: "tray", folderID: nil)
+                    ForEach(archiveStore.folders) { folder in
+                        folderChip(name: folder.name, systemImage: "folder", folderID: folder.folderID)
+                    }
+                }
+
+                if archiveStore.folders.isEmpty {
+                    quickFolderSuggestions
                 }
             }
         }
     }
+
+    private var quickFolderSuggestions: some View {
+        VStack(alignment: .leading, spacing: KMSpacing.sm) {
+            Text("よく使うフォルダを作成")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(KMColor.tertiaryText)
+            HStack(spacing: KMSpacing.sm) {
+                ForEach(["住宅", "仕事", "家庭"], id: \.self) { name in
+                    Button {
+                        archiveStore.createFolder(name: name)
+                        if let folder = archiveStore.folders.first(where: { $0.name == name }) {
+                            selectFolder(id: folder.folderID, name: folder.name)
+                        }
+                    } label: {
+                        Label(name, systemImage: "folder.badge.plus")
+                            .font(.caption.weight(.semibold))
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(KMColor.moss)
+                }
+            }
+        }
+    }
+
+    private func folderChip(name: String, systemImage: String, folderID: String?) -> some View {
+        Button {
+            selectFolder(id: folderID, name: name)
+        } label: {
+            HStack(spacing: KMSpacing.xs) {
+                Image(systemName: systemImage)
+                Text(name)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                if viewModel.selectedFolderID == folderID {
+                    Image(systemName: "checkmark.circle.fill")
+                }
+            }
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, KMSpacing.sm)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(viewModel.selectedFolderID == folderID ? KMColor.moss.opacity(0.14) : KMColor.groupedBackground)
+            .foregroundStyle(viewModel.selectedFolderID == folderID ? KMColor.moss : KMColor.text)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(viewModel.selectedFolderID == folderID ? KMColor.moss.opacity(0.35) : Color.clear, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func selectFolder(id: String?, name: String?) {
+        viewModel.selectedFolderID = id
+        viewModel.updateCategoryFromFolderName(id == nil ? nil : name)
+    }
+
 
     private var focusCard: some View {
         KMCard {

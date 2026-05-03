@@ -156,32 +156,32 @@ private struct ArchiveBrowserContent: View {
     @ViewBuilder
     private var folderContent: some View {
         Section {
-            NavigationLink(value: ArchiveDest.all) {
-                HStack {
-                    Label("全て", systemImage: "list.bullet")
-                    Spacer()
-                    Text("\(archiveStore.items.count)")
-                        .font(.subheadline).foregroundStyle(KMColor.tertiaryText)
-                }
+            VStack(alignment: .leading, spacing: 4) {
+                Text("フォルダ")
+                    .font(.headline)
+                Text("保存先ごとに議事録を整理できます。入力画面や生成結果から保存先を選べます。")
+                    .font(.caption)
+                    .foregroundStyle(KMColor.secondaryText)
             }
-            NavigationLink(value: ArchiveDest.unfoldered) {
-                HStack {
-                    Label("フォルダなし", systemImage: "tray")
-                    Spacer()
-                    Text("\(unfolderedCount)")
-                        .font(.subheadline).foregroundStyle(KMColor.tertiaryText)
-                }
-            }
+            .padding(.vertical, 4)
         }
+        .listRowBackground(Color.clear)
 
-        Section("フォルダ") {
+        Section {
             ForEach(archiveStore.folders) { folder in
                 NavigationLink(value: ArchiveDest.folder(folder.folderID, folder.name)) {
-                    HStack {
-                        Label(folder.name, systemImage: "folder")
+                    HStack(spacing: 12) {
+                        Image(systemName: "folder.fill")
+                            .foregroundStyle(KMColor.moss)
+                            .frame(width: 28)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(folder.name)
+                                .font(.body.weight(.semibold))
+                            Text("\(itemCount(inFolder: folder.folderID))件")
+                                .font(.caption)
+                                .foregroundStyle(KMColor.tertiaryText)
+                        }
                         Spacer()
-                        Text("\(itemCount(inFolder: folder.folderID))")
-                            .font(.subheadline).foregroundStyle(KMColor.tertiaryText)
                     }
                 }
                 .swipeActions(edge: .trailing) {
@@ -195,6 +195,25 @@ private struct ArchiveBrowserContent: View {
             Button { onNewFolder() } label: {
                 Label("新規フォルダ", systemImage: "folder.badge.plus")
                     .foregroundStyle(KMColor.moss)
+            }
+        }
+
+        Section("一覧") {
+            NavigationLink(value: ArchiveDest.all) {
+                Label("すべての議事録（\(archiveStore.items.count)件）", systemImage: "list.bullet")
+            }
+            NavigationLink(value: ArchiveDest.unfoldered) {
+                Label("フォルダなし（\(unfolderedCount)件）", systemImage: "tray")
+            }
+        }
+
+        if !archiveStore.items.isEmpty {
+            Section("最近") {
+                ForEach(archiveStore.items.prefix(5)) { item in
+                    NavigationLink(value: item) {
+                        ArchiveRowView(item: item, folderName: folderName(for: item))
+                    }
+                }
             }
         }
 

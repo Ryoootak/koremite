@@ -424,6 +424,7 @@
         selectedSpeakers: ["me", "staff"],
         focus: "decision",
         category: "住宅",
+        selectedFolderName: "住宅",
         note: "",
         result: null,
         resultTab: "summary",
@@ -520,6 +521,14 @@
           name,
           initial: name.slice(0, 1)
         }));
+      }
+
+      function categoryForFolder(folderName) {
+        const name = String(folderName || "");
+        if (name.includes("住宅") || name.includes("家") || name.includes("ローン")) return "住宅";
+        if (name.includes("仕事") || name.includes("商談") || name.includes("会議")) return "仕事";
+        if (name.includes("家庭") || name.includes("家族")) return "家庭";
+        return "その他";
       }
 
       function loadArchives() {
@@ -654,9 +663,21 @@
                 </div>
 
                 <div class="section">
-                  <div class="section-title"><span class="km-eyebrow">03</span><div>用途</div></div>
-                  <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    ${categoryChips.map((c) => `<button class="km-btn km-btn-chip" data-category="${c}" data-on="${state.category === c}">${c}</button>`).join("")}
+                  <div class="section-title"><span class="km-eyebrow">03</span><div>保存先フォルダ</div></div>
+                  <div class="km-meta" style="margin-bottom:12px;margin-top:-8px">選んだフォルダに保存しやすくします</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button class="km-btn" data-folder-name="" style="background:${!state.selectedFolderName ? "var(--km-moss-bg)" : "var(--km-card)"};border:1px solid ${!state.selectedFolderName ? "var(--km-moss-line)" : "var(--km-stroke)"};color:${!state.selectedFolderName ? "var(--km-moss)" : "var(--km-text)"};border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;text-align:left;font-size:14px;font-weight:650">
+                      ${icon("tray", 16)}<span style="flex:1">フォルダなし</span>${!state.selectedFolderName ? icon("check", 14) : ""}
+                    </button>
+                    ${state.folders.map((f) => `
+                      <button class="km-btn" data-folder-name="${escapeHTML(f)}" style="background:${state.selectedFolderName === f ? "var(--km-moss-bg)" : "var(--km-card)"};border:1px solid ${state.selectedFolderName === f ? "var(--km-moss-line)" : "var(--km-stroke)"};color:${state.selectedFolderName === f ? "var(--km-moss)" : "var(--km-text)"};border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;text-align:left;font-size:14px;font-weight:650">
+                        ${icon("folder", 16)}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHTML(f)}</span>${state.selectedFolderName === f ? icon("check", 14) : ""}
+                      </button>`).join("")}
+                  </div>
+                  <div style="margin-top:10px;background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:9px 10px;display:flex;align-items:center;gap:8px">
+                    ${icon("folderPlus", 16)}
+                    <input id="setupFolderInput" value="${escapeHTML(state.newFolderDraft)}" placeholder="新規フォルダ名" style="flex:1;font-size:14px" />
+                    <button class="km-btn" data-action="create-setup-folder" style="background:var(--km-moss-bg);color:var(--km-moss);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700">作成</button>
                   </div>
                 </div>
 
@@ -877,11 +898,11 @@
             <div style="overflow-y:auto;max-height:calc(72vh - 140px)">
               <div style="display:flex;flex-direction:column;gap:8px">
                 <button class="km-btn" data-save-to-folder="" style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left">
-                  ${icon("tray", 18)}<span style="flex:1;font-size:15px;font-weight:600">フォルダなし</span>
+                  ${icon("tray", 18)}<span style="flex:1;font-size:15px;font-weight:600">フォルダなし</span>${!state.selectedFolderName ? icon("check", 16) : ""}
                 </button>
                 ${state.folders.map((f) => `
                   <button class="km-btn" data-save-to-folder="${escapeHTML(f)}" style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left">
-                    ${icon("folder", 18)}<span style="flex:1;font-size:15px;font-weight:600">${escapeHTML(f)}</span>
+                    ${icon("folder", 18)}<span style="flex:1;font-size:15px;font-weight:600">${escapeHTML(f)}</span>${state.selectedFolderName === f ? icon("check", 16) : ""}
                   </button>`).join("")}
                 <div style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px">
                   ${icon("folderPlus", 18)}
@@ -912,6 +933,8 @@
         const item = { ...state.result, savedAt: new Date().toISOString(), folderName: folderName || null };
         if (existing >= 0) state.archives.splice(existing, 1);
         state.archives.unshift(item);
+        state.selectedFolderName = folderName || null;
+        state.category = categoryForFolder(state.selectedFolderName);
         persistArchives();
         state.showFolderPicker = false;
         state.newFolderDraft = "";
@@ -967,9 +990,17 @@
               </div>
             </div>
             ${state.archiveQuery ? "" : `
+            <div style="padding:0 20px 10px">
+              <div class="km-card" style="padding:12px 14px">
+                <div style="font-size:13px;font-weight:700;color:var(--km-text)">フォルダで見る</div>
+                <div class="km-meta" style="margin-top:2px">保存先ごとに議事録を整理します</div>
+              </div>
+            </div>`}
+            ${state.archiveQuery ? "" : `
             <div style="padding:0 20px 8px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">
               ${[{ id: "all", label: "全て" }, { id: "unfoldered", label: "フォルダなし" }, ...state.folders.map((f) => ({ id: f, label: f }))].map((f) => `
-                <button class="km-btn" data-archive-folder="${f.id}" style="flex-shrink:0;background:${state.archiveFolder === f.id ? "var(--km-moss)" : "var(--km-card)"};color:${state.archiveFolder === f.id ? "#fff" : "var(--km-text)"};border:1px solid ${state.archiveFolder === f.id ? "transparent" : "var(--km-stroke)"};border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600">
+                <button class="km-btn" data-archive-folder="${f.id}" style="flex-shrink:0;background:${state.archiveFolder === f.id ? "var(--km-moss)" : "var(--km-card)"};color:${state.archiveFolder === f.id ? "#fff" : "var(--km-text)"};border:1px solid ${state.archiveFolder === f.id ? "transparent" : "var(--km-stroke)"};border-radius:14px;padding:9px 13px;font-size:13px;font-weight:650;display:flex;align-items:center;gap:7px">
+                  ${icon(f.id === "all" ? "list" : f.id === "unfoldered" ? "tray" : "folder", 15)}
                   ${escapeHTML(f.label)} <span style="opacity:0.7">${countIn(f.id)}</span>
                 </button>`).join("")}
             </div>`}
@@ -1129,6 +1160,9 @@
         if (event.target.id === "addFolderInput") {
           state.newFolderDraft = event.target.value;
         }
+        if (event.target.id === "setupFolderInput") {
+          state.newFolderDraft = event.target.value;
+        }
       });
 
       screen.addEventListener("keydown", (event) => {
@@ -1148,7 +1182,7 @@
       });
 
       screen.addEventListener("click", (event) => {
-        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder],[data-delete-folder]");
+        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-folder-name],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder],[data-delete-folder]");
         if (!target) return;
 
         const action = target.dataset.action;
@@ -1190,9 +1224,28 @@
             saveToFolder(name);
           }
         }
+        if (action === "create-setup-folder") {
+          const input = document.querySelector("#setupFolderInput");
+          const name = (input?.value || state.newFolderDraft).trim();
+          if (name) {
+            if (!state.folders.includes(name)) {
+              state.folders.push(name);
+              persistFolders();
+            }
+            state.selectedFolderName = name;
+            state.category = categoryForFolder(name);
+            state.newFolderDraft = "";
+            render();
+          }
+        }
 
         if (target.dataset.focus) { state.focus = target.dataset.focus; render(); }
         if (target.dataset.category) { state.category = target.dataset.category; render(); }
+        if ("folderName" in target.dataset) {
+          state.selectedFolderName = target.dataset.folderName || null;
+          state.category = categoryForFolder(state.selectedFolderName);
+          render();
+        }
         if (target.dataset.resultTab) {
           state.resultTab = target.dataset.resultTab;
           state.logQuery = "";

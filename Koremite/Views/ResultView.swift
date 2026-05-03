@@ -8,9 +8,10 @@ struct ResultView: View {
     @State private var didSave = false
     @State private var saveAlertTitle = "保存しました"
     let result: MinutesResult
+    var suggestedFolderID: String? = nil
 
     private var currentFolderID: String? {
-        archiveStore.folderAssignments[result.id.uuidString]
+        archiveStore.folderAssignments[result.id.uuidString] ?? suggestedFolderID
     }
 
     private var currentFolderName: String? {

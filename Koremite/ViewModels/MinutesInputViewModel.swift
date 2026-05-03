@@ -5,6 +5,7 @@ final class MinutesInputViewModel: ObservableObject {
     @Published var transcript = ""
     @Published var speakersText = "自分, 相手"
     @Published var category: MeetingCategory = .housing
+    @Published var selectedFolderID: String?
     @Published var selectedFocusPoints: Set<FocusPoint> = [.decisions, .todos, .schedule, .concerns]
     @Published var isGenerating = false
     @Published var result: MinutesResult?
@@ -47,6 +48,19 @@ final class MinutesInputViewModel: ObservableObject {
             selectedFocusPoints.remove(focusPoint)
         } else {
             selectedFocusPoints.insert(focusPoint)
+        }
+    }
+
+    func updateCategoryFromFolderName(_ folderName: String?) {
+        let name = folderName ?? ""
+        if name.contains("住宅") || name.contains("家") || name.contains("ローン") {
+            category = .housing
+        } else if name.contains("仕事") || name.contains("商談") || name.contains("会議") {
+            category = .work
+        } else if name.contains("家庭") || name.contains("家族") {
+            category = .family
+        } else {
+            category = .other
         }
     }
 
