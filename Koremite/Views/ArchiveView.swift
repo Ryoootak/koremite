@@ -156,18 +156,6 @@ private struct ArchiveBrowserContent: View {
     @ViewBuilder
     private var folderContent: some View {
         Section {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("フォルダ")
-                    .font(.headline)
-                Text("保存先ごとに議事録を整理できます。入力画面や生成結果から保存先を選べます。")
-                    .font(.caption)
-                    .foregroundStyle(KMColor.secondaryText)
-            }
-            .padding(.vertical, 4)
-        }
-        .listRowBackground(Color.clear)
-
-        Section {
             ForEach(archiveStore.folders) { folder in
                 NavigationLink(value: ArchiveDest.folder(folder.folderID, folder.name)) {
                     HStack(spacing: 12) {

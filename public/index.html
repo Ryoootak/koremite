@@ -1001,13 +1001,6 @@
               </div>
             </div>
             ${state.archiveQuery ? "" : `
-            <div style="padding:0 20px 10px">
-              <div class="km-card" style="padding:12px 14px">
-                <div style="font-size:13px;font-weight:700;color:var(--km-text)">フォルダで見る</div>
-                <div class="km-meta" style="margin-top:2px">保存先ごとに議事録を整理します</div>
-              </div>
-            </div>`}
-            ${state.archiveQuery ? "" : `
             <div style="padding:0 20px 8px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">
               ${[{ id: "all", label: "全て" }, { id: "unfoldered", label: "フォルダなし" }, ...state.folders.map((f) => ({ id: f, label: f }))].map((f) => `
                 <button class="km-btn" data-archive-folder="${f.id}" style="flex-shrink:0;background:${state.archiveFolder === f.id ? "var(--km-moss)" : "var(--km-card)"};color:${state.archiveFolder === f.id ? "#fff" : "var(--km-text)"};border:1px solid ${state.archiveFolder === f.id ? "transparent" : "var(--km-stroke)"};border-radius:14px;padding:9px 13px;font-size:13px;font-weight:650;display:flex;align-items:center;gap:7px">
