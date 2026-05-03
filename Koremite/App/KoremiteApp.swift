@@ -10,6 +10,6 @@ struct KoremiteApp: App {
             RootView()
                 .environmentObject(archiveStore)
         }
-        .modelContainer(for: ArchivedMinutesRecord.self)
+        .modelContainer(for: [ArchivedMinutesRecord.self, FolderRecord.self])
     }
 }

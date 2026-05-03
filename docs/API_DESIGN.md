@@ -1,9 +1,9 @@
-# API Design
+# API設計
 
-## Endpoint
+## エンドポイント
 `POST /v1/minutes`
 
-## Request
+## リクエスト
 ```json
 {
   "transcript": "string",
@@ -15,7 +15,7 @@
 }
 ```
 
-## Response
+## レスポンス
 ```json
 {
   "title": "string",
@@ -41,21 +41,21 @@
 }
 ```
 
-## Errors
-Return safe Japanese messages to the app. Do not include the transcript in errors.
+## エラー
+アプリへは安全な日本語メッセージを返す。エラーに文字起こし本文を含めてはいけない。
 
-- `400`: input missing or too long
-- `429`: rate limited
-- `502`: AI provider failed
-- `504`: timeout
+- `400`: 入力なし、または入力が長すぎる
+- `429`: レート制限超過
+- `502`: AIプロバイダー障害
+- `504`: タイムアウト
 
-## Backend Responsibilities
-- Validate input size.
-- Rate limit by IP for MVP, with a future device-token strategy if needed.
-- Select processing mode by length.
-- Use fixed JSON schema.
-- Bound retries and timeout.
-- Keep AI API key in environment variables only.
-- Cache successful results by `sourceHash` for `CACHE_TTL_SECONDS`.
-- For `long_chunked`, compress chunks with the fast model before final synthesis.
-- MVP AI provider is Gemini API via `GEMINI_API_KEY` and `GEMINI_BASE_URL`.
+## バックエンドの責務
+- 入力サイズのバリデーション
+- MVP期間はIPベースのレート制限（将来的にデバイストークン方式も検討）
+- 入力長によって処理モードを選択
+- 固定JSONスキーマを使用
+- リトライ回数とタイムアウトを制限
+- AIのAPIキーは環境変数のみで保持
+- `sourceHash` に対応する成功結果を `CACHE_TTL_SECONDS` の間キャッシュ
+- `long_chunked` の場合、高速モデルでチャンクを圧縮してから最終合成
+- MVPのAIプロバイダーは `GEMINI_API_KEY` と `GEMINI_BASE_URL` を通じたGemini API

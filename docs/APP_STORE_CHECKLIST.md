@@ -1,31 +1,33 @@
-# App Store Checklist
+# App Store申請チェックリスト
 
-## Scope
-- Confirm no microphone permission usage string.
-- Confirm no Speech Recognition usage string.
-- Confirm no audio import wording in UI.
-- Confirm all visible app naming says "Koremite".
+## スコープ確認
+- [ ] マイク権限の利用文字列がないことを確認
+- [ ] Speech Recognition権限の利用文字列がないことを確認
+- [ ] UI上に音声インポートの文言がないことを確認
+- [ ] アプリ名称がすべて「Koremite」になっていることを確認
 
-## Privacy
-- Publish privacy policy.
-- Confirm Privacy Nutrition Labels match actual behavior.
-- Verify user notice before generation says text is sent to server for AI processing.
-- Confirm delete flow for local archives.
+## プライバシー
+- [ ] プライバシーポリシーを公開する
+- [ ] Privacy Nutrition Labelsが実際の動作と一致していることを確認
+- [ ] 生成前の「文字起こしはサーバーへ送信される」ユーザー告知を確認
+- [ ] ローカルアーカイブの削除フローを確認
 
-## Security
-- Verify no AI API key in iOS bundle.
-- Verify no transcript body logging.
-- Verify backend secrets are environment variables.
+## セキュリティ
+- [ ] iOSバンドルにAI APIキーが含まれていないことを確認
+- [ ] 文字起こし本文がログ出力されていないことを確認
+- [ ] バックエンドのシークレットが環境変数になっていることを確認
 
 ## UX
-- Test paste flow.
-- Test long text warning.
-- Test generation loading, error, retry.
-- Test copy, share sheet, save, search, delete.
+- [ ] 貼り付けフローのテスト
+- [ ] 長文警告のテスト
+- [ ] 生成中・エラー・リトライのテスト
+- [ ] コピー・共有シート・保存・検索・削除のテスト
+- [ ] フォルダ作成・削除・名前変更のテスト
+- [ ] フォルダへの手動割り当てフローのテスト
 
-## Backend
-- Input size limit.
-- Rate limit policy.
-- Timeout.
-- Bounded retries.
-- Safe error messages.
+## バックエンド
+- [ ] 入力サイズ制限
+- [ ] レート制限ポリシー
+- [ ] タイムアウト
+- [ ] リトライ回数の上限
+- [ ] 安全なエラーメッセージ

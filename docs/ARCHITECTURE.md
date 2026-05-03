@@ -1,34 +1,36 @@
-# Architecture
+# アーキテクチャ
 
-## Overview
-Koremite uses a native SwiftUI iOS app and a small backend API. The iOS app never calls AI providers directly.
+## 概要
+KoremiteはネイティブSwiftUI iOSアプリと小さなバックエンドAPIで構成される。iOSアプリがAIプロバイダーを直接呼び出すことはない。
 
 ```text
-iOS SwiftUI app -> Koremite backend -> AI provider
-                 -> local SwiftData archive
+iOS SwiftUIアプリ -> Koremiteバックエンド -> AIプロバイダー
+                  -> ローカルSwiftDataアーカイブ
 ```
 
-## iOS Layers
-- Views: SwiftUI screens and reusable components.
-- ViewModels: state, validation, loading, retry, save/copy/share orchestration.
-- Models: fixed request/response schema.
-- Services: `AIClient`, `MockAIClient`, `RemoteAIClient`, archive storage.
-- DesignSystem: colors, spacing, typography, cards, chips, buttons.
+## iOSの層構成
+- **Views**: SwiftUIスクリーンと再利用可能なコンポーネント
+- **ViewModels**: 状態・バリデーション・ローディング・リトライ・保存/コピー/共有の調整
+- **Models**: 固定リクエスト/レスポンススキーマ
+- **Services**: `AIClient`・`MockAIClient`・`RemoteAIClient`・アーカイブストレージ
+- **DesignSystem**: カラー・余白・タイポグラフィ・カード・チップ・ボタン
 
-## Data Flow
-1. User pastes transcription text.
-2. ViewModel validates length and displays processing mode.
-3. `AIClient.generateMinutes` is called.
-4. Mock client returns deterministic local data in development.
-5. Remote client posts to backend `/v1/minutes`.
-6. Result is decoded as JSON; malformed data falls back to a user-facing Japanese error.
-7. User copies/shares/saves.
+## データフロー
+1. ユーザーが文字起こしテキストを貼り付ける
+2. ViewModelが文字数をバリデートし、処理モードを表示する
+3. `AIClient.generateMinutes` を呼び出す
+4. 開発中はMockClientがローカルで決定的データを返す
+5. Remoteクライアントがバックエンド `/v1/minutes` にPOSTする
+6. 結果をJSONとしてデコードする。不正なデータは日本語エラーにフォールバックする
+7. ユーザーがコピー/共有/保存する
 
-## Storage
-SwiftData stores generated minutes on device through `ArchivedMinutesRecord`. The app stores generated output, category, created date, source hash, and search metadata. It does not store backend secrets.
+## ストレージ
+SwiftDataが`ArchivedMinutesRecord`を通じて生成済み議事録をデバイスに保存する。保存対象は生成出力・カテゴリ・作成日・sourceHash・検索メタデータ・フォルダID。バックエンドのシークレットは保存しない。
 
-## Backend Choice
-Cloudflare Workers is selected for MVP because it is low-cost for small APIs, easy to deploy, supports environment variables, has good edge latency, and avoids maintaining a server. See `docs/DECISIONS.md`.
+フォルダ管理は`FolderRecord`（SwiftData）で行い、`ArchiveStore`が`folderAssignments`ディクショナリを通じてView層にID→名前のマッピングを提供する。
 
-## Security Boundary
-The iOS app only knows the Koremite backend endpoint. The backend owns AI provider credentials, input limits, rate limit policy, retry bounds, timeouts, cache TTL, chunking, schema validation, and model selection.
+## バックエンド選択理由
+小規模APIに対してシンプル・低コスト・デプロイ容易・環境変数対応・エッジレイテンシ良好・サーバー管理不要という点からCloudflare WorkersをMVPに採用。詳細は `docs/DECISIONS.md` を参照。
+
+## セキュリティ境界
+iOSアプリはKoremiteバックエンドのエンドポイントのみを知っている。バックエンドがAIプロバイダー認証情報・入力制限・レート制限ポリシー・リトライ上限・タイムアウト・キャッシュTTL・チャンク処理・スキーマバリデーション・モデル選択をすべて管理する。

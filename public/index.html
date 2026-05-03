@@ -399,6 +399,7 @@
     <script>
       const screen = document.querySelector("#screen");
       const archiveStorageKey = "koremite.webPreview.archives.v1";
+      const foldersStorageKey = "koremite.webPreview.folders.v1";
       const maxInput = 50000;
       const focusChips = [
         { id: "decision", label: "決めごと", hint: "決定事項・合意した内容" },
@@ -429,8 +430,12 @@
         toast: null,
         flying: false,
         archives: loadArchives(),
+        folders: loadFolders(),
         archiveQuery: "",
-        archiveFolder: "住宅",
+        archiveFolder: "all",
+        showFolderPicker: false,
+        newFolderDraft: "",
+        logQuery: "",
         editingLine: null,
         speakerOverrides: {}
       };
@@ -441,6 +446,7 @@
         const icons = {
           plus: `<svg ${attrs} ${stroke}><path d="M12 5v14M5 12h14"/></svg>`,
           folder: `<svg ${attrs} ${stroke}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>`,
+          folderPlus: `<svg ${attrs} ${stroke}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 12v5M9.5 14.5h5"/></svg>`,
           doc: `<svg ${attrs} ${stroke}><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h5"/></svg>`,
           sparkle: `<svg ${attrs} fill="currentColor"><path d="M12 2l1.7 5.3L19 9l-5.3 1.7L12 16l-1.7-5.3L5 9l5.3-1.7L12 2z"/><circle cx="19" cy="18" r="1.5"/><circle cx="5" cy="18" r="1"/></svg>`,
           check: `<svg ${attrs} ${stroke} stroke-width="2.2"><path d="M5 12.5l4.5 4.5L20 6.5"/></svg>`,
@@ -450,7 +456,9 @@
           more: `<svg ${attrs} fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>`,
           search: `<svg ${attrs} ${stroke}><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`,
           x: `<svg ${attrs} ${stroke} stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>`,
-          chevron: `<svg ${attrs} ${stroke} stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>`
+          chevron: `<svg ${attrs} ${stroke} stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>`,
+          list: `<svg ${attrs} ${stroke}><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>`,
+          tray: `<svg ${attrs} ${stroke}><path d="M2 17h20M2 7l5 5 5-5 5 5 5-5"/></svg>`
         };
         return icons[name] || "";
       }
@@ -472,6 +480,34 @@
           name,
           initial: name.slice(0, 1)
         }));
+      }
+
+      function loadArchives() {
+        try {
+          const raw = localStorage.getItem(archiveStorageKey);
+          const parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (_) {
+          return [];
+        }
+      }
+
+      function persistArchives() {
+        localStorage.setItem(archiveStorageKey, JSON.stringify(state.archives.slice(0, 100)));
+      }
+
+      function loadFolders() {
+        try {
+          const raw = localStorage.getItem(foldersStorageKey);
+          const parsed = raw ? JSON.parse(raw) : ["住宅", "仕事", "家庭"];
+          return Array.isArray(parsed) ? parsed : ["住宅", "仕事", "家庭"];
+        } catch (_) {
+          return ["住宅", "仕事", "家庭"];
+        }
+      }
+
+      function persistFolders() {
+        localStorage.setItem(foldersStorageKey, JSON.stringify(state.folders));
       }
 
       function render() {
@@ -636,8 +672,7 @@
 
       function renderResult() {
         const result = state.result;
-        if (state.resultTab === "log") state.resultTab = "summary";
-        const tabIndex = { summary: 0, minutes: 1 }[state.resultTab] || 0;
+        const tabIndex = { summary: 0, minutes: 1, log: 2 }[state.resultTab] ?? 0;
         screen.innerHTML = `
           <div style="padding-top:56px;height:100%;position:relative;display:flex;flex-direction:column;background:var(--km-bg);overflow:hidden">
             <div style="padding:8px 16px 0;display:flex;align-items:center;justify-content:space-between">
@@ -650,10 +685,11 @@
               <div class="km-title-md" style="margin-top:4px;text-wrap:pretty">${escapeHTML(result.title || "生成結果")}</div>
             </div>
             <div style="padding:0 20px">
-              <div class="km-segment">
-                <div class="km-segment-thumb" data-i="${tabIndex}"></div>
-                <button data-result-tab="summary" data-on="${state.resultTab === "summary"}">共有用</button>
+              <div class="km-segment" style="grid-template-columns:repeat(3,1fr)">
+                <div class="km-segment-thumb" style="width:calc((100% - 6px)/3);transform:translateX(${tabIndex * 100}%);transition:transform 220ms cubic-bezier(.4,0,.2,1)"></div>
+                <button data-result-tab="summary" data-on="${state.resultTab === "summary"}">共有版</button>
                 <button data-result-tab="minutes" data-on="${state.resultTab === "minutes"}">議事録</button>
+                <button data-result-tab="log" data-on="${state.resultTab === "log"}">全量ログ</button>
               </div>
             </div>
             <div class="km-scroll" style="flex:1;padding:16px 20px 110px">
@@ -662,7 +698,7 @@
             <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 20px 28px;background:linear-gradient(to top,var(--km-bg) 65%,transparent)">
               <div style="display:flex;gap:8px">
                 <button class="km-btn km-btn-primary" data-action="copy" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px">
-                  ${icon(state.resultTab === "summary" ? "plane" : "copy", 17)} ${state.resultTab === "summary" ? "コピーして送る" : "議事録をコピー"}
+                  ${icon(state.resultTab === "summary" ? "plane" : "copy", 17)} ${state.resultTab === "summary" ? "コピーして送る" : "コピー"}
                 </button>
                 <button class="km-btn" data-action="save" style="width:82px;background:var(--km-card);border:1px solid var(--km-stroke);color:var(--km-text);border-radius:999px;font-size:15px;font-weight:700">
                   保存
@@ -671,6 +707,7 @@
             </div>
             ${state.flying ? renderPaperPlane() : ""}
             ${state.toast ? `<div class="toast">${icon("check", 14)} ${escapeHTML(state.toast)}</div>` : ""}
+            ${state.showFolderPicker ? renderFolderPickerSheet() : ""}
             ${state.editingLine !== null ? renderSpeakerSheet() : ""}
           </div>
         `;
@@ -713,6 +750,30 @@
           `;
         }
 
+        if (state.resultTab === "log") {
+          const entries = result.fullLog || [];
+          const q = state.logQuery || "";
+          const filtered = q
+            ? entries.filter((e) => (e.speaker || "").includes(q) || (e.text || "").includes(q))
+            : entries;
+          return `
+            <div style="display:flex;flex-direction:column;gap:10px;animation:km-fade-up 280ms ease">
+              <div style="background:var(--km-bg-2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px;color:var(--km-text-3)">
+                ${icon("search", 15)}
+                <input id="logQuery" value="${escapeHTML(q)}" placeholder="発言・話者を検索" style="flex:1;font-size:14px;font-family:inherit" />
+                ${q ? `<button data-action="clear-log-search" class="km-btn" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
+              </div>
+              ${filtered.length === 0
+                ? `<div class="km-meta" style="text-align:center;padding:24px">${q ? "検索結果なし" : "全量ログがありません"}</div>`
+                : filtered.map((entry) => `
+                  <div class="km-card" style="padding:14px 16px">
+                    <div style="font-size:11px;font-weight:700;color:var(--km-moss);margin-bottom:6px;letter-spacing:0.02em">${escapeHTML(entry.speaker || "")}</div>
+                    <div style="font-size:14px;line-height:1.6">${escapeHTML(entry.text || "")}</div>
+                  </div>`).join("")}
+            </div>
+          `;
+        }
+
         return "";
       }
 
@@ -741,29 +802,6 @@
         return `<div class="km-card" style="padding:14px 16px">${sectionLabel(title)}<div style="margin-top:8px">${body}</div></div>`;
       }
 
-      function speakerBadge(s) {
-        return `<span style="display:inline-flex;align-items:center;gap:5px;padding:1px 8px 1px 3px;border-radius:999px;background:var(--km-bg-2)">
-          <span class="km-speaker-dot" style="width:18px;height:18px;font-size:10px;background:oklch(88% 0.025 ${s.hue})">${escapeHTML(s.initial)}</span>${escapeHTML(s.name)}
-        </span>`;
-      }
-
-      function transcriptLine(line, i) {
-        const speakers = currentSpeakers();
-        const s = speakers[i % speakers.length] || speakers[0];
-        const flagged = i === 0 && (state.result?.confidenceWarnings || []).length > 0;
-        return `
-          <div style="display:flex;gap:10px;align-items:flex-start;padding-top:${i ? 10 : 0}px;padding-bottom:7px;border-top:${i ? "1px dashed var(--km-stroke)" : "none"}">
-            <button class="km-speaker-dot" data-edit-line="${i}" style="background:oklch(88% 0.025 ${s.hue});color:var(--km-text);border:${flagged ? "1.5px dashed var(--km-warn)" : "none"};cursor:pointer;flex-shrink:0">${escapeHTML(s.initial)}</button>
-            <div style="flex:1;min-width:0">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-                <span style="font-size:13px;font-weight:700">${escapeHTML(line.speaker || s.name)}</span>
-                ${flagged ? `<span style="font-size:10px;font-weight:700;color:var(--km-warn);border:1px solid var(--km-warn);border-radius:4px;padding:1px 5px">要確認</span>` : ""}
-              </div>
-              <div style="font-size:14px;line-height:1.6;color:var(--km-text)">${escapeHTML(line.text)}</div>
-            </div>
-          </div>`;
-      }
-
       function renderSpeakerSheet() {
         const line = state.result.fullLog[state.editingLine];
         return `
@@ -784,34 +822,31 @@
         `;
       }
 
-      function loadArchives() {
-        try {
-          const raw = localStorage.getItem(archiveStorageKey);
-          const parsed = raw ? JSON.parse(raw) : [];
-          return Array.isArray(parsed) ? parsed : [];
-        } catch (_) {
-          return [];
-        }
-      }
-
-      function persistArchives() {
-        localStorage.setItem(archiveStorageKey, JSON.stringify(state.archives.slice(0, 100)));
-      }
-
-      function saveCurrentResult() {
-        if (!state.result) return;
-        const key = state.result.sourceHash || state.result.title + state.result.shareSummary?.text;
-        const existing = state.archives.findIndex((item) => (item.sourceHash || item.title + item.shareSummary?.text) === key);
-        const item = {
-          ...state.result,
-          savedAt: new Date().toISOString()
-        };
-        if (existing >= 0) state.archives.splice(existing, 1);
-        state.archives.unshift(item);
-        persistArchives();
-        state.toast = "保存しました";
-        render();
-        setTimeout(() => { state.toast = null; render(); }, 1800);
+      function renderFolderPickerSheet() {
+        return `
+          <div data-action="close-folder-picker" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);animation:km-fade-in 200ms ease;z-index:70"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:var(--km-bg);border-top-left-radius:22px;border-top-right-radius:22px;padding:10px 20px 28px;animation:km-sheet-in 280ms cubic-bezier(.32,.72,.4,1);z-index:71;max-height:72%">
+            <div style="width:36px;height:4px;border-radius:2px;background:var(--km-stroke-2);margin:0 auto 10px"></div>
+            <div style="font-size:17px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px">保存先フォルダ</div>
+            <div style="overflow-y:auto;max-height:calc(72vh - 140px)">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <button class="km-btn" data-save-to-folder="" style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left">
+                  ${icon("tray", 18)}<span style="flex:1;font-size:15px;font-weight:600">フォルダなし</span>
+                </button>
+                ${state.folders.map((f) => `
+                  <button class="km-btn" data-save-to-folder="${escapeHTML(f)}" style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left">
+                    ${icon("folder", 18)}<span style="flex:1;font-size:15px;font-weight:600">${escapeHTML(f)}</span>
+                  </button>`).join("")}
+                <div style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+                  ${icon("folderPlus", 18)}
+                  <input id="newFolderInput" value="${escapeHTML(state.newFolderDraft)}" placeholder="新規フォルダ名…" style="flex:1;font-size:15px" />
+                  <button class="km-btn" data-action="create-and-save-folder" style="background:var(--km-moss-bg);color:var(--km-moss);border-radius:8px;padding:5px 10px;font-size:13px;font-weight:700">作成</button>
+                </div>
+              </div>
+            </div>
+            <button data-action="close-folder-picker" class="km-btn km-btn-ghost" style="width:100%;margin-top:12px;padding:12px 14px;background:var(--km-card-2);border-radius:12px;color:var(--km-text-2)">キャンセル</button>
+          </div>
+        `;
       }
 
       function renderPaperPlane() {
@@ -824,21 +859,45 @@
           </div>`;
       }
 
+      function saveToFolder(folderName) {
+        if (!state.result) return;
+        const key = state.result.sourceHash || state.result.title + state.result.shareSummary?.text;
+        const existing = state.archives.findIndex((item) => (item.sourceHash || item.title + item.shareSummary?.text) === key);
+        const item = { ...state.result, savedAt: new Date().toISOString(), folderName: folderName || null };
+        if (existing >= 0) state.archives.splice(existing, 1);
+        state.archives.unshift(item);
+        persistArchives();
+        state.showFolderPicker = false;
+        state.newFolderDraft = "";
+        state.toast = "保存しました";
+        render();
+        setTimeout(() => { state.toast = null; render(); }, 1800);
+      }
+
       function renderArchive() {
-        const folders = ["住宅", "仕事", "家庭", "その他"];
-        const all = state.archives.map((item) => ({ ...item, folder: item.category || "その他", date: item.savedAt ? new Date(item.savedAt).toLocaleDateString("ja-JP") : "保存済み" }));
-        const fallback = [
-          { title: "リフォーム、洗面所の見積もり確認", folder: "住宅", date: "サンプル", shareSummary: { text: "見積もり確認と次回相談のサンプルです。" } },
-          { title: "Q2の方針、上長との1on1", folder: "仕事", date: "サンプル", shareSummary: { text: "仕事カテゴリの保存例です。" } }
-        ];
-        const items = all.length ? all : fallback;
-        const filtered = state.archiveQuery ? items.filter((it) => `${it.title} ${it.folder} ${it.shareSummary?.text || ""}`.includes(state.archiveQuery)) : null;
+        const all = state.archives.map((item) => ({
+          ...item,
+          date: item.savedAt ? new Date(item.savedAt).toLocaleDateString("ja-JP") : "保存済み"
+        }));
+
+        const displayItems = (() => {
+          if (state.archiveQuery) {
+            const q = state.archiveQuery;
+            return all.filter((it) => `${it.title} ${it.folderName || ""} ${it.shareSummary?.text || ""}`.includes(q));
+          }
+          if (state.archiveFolder === "all") return all;
+          if (state.archiveFolder === "unfoldered") return all.filter((it) => !it.folderName);
+          return all.filter((it) => it.folderName === state.archiveFolder);
+        })();
+
+        const countIn = (f) => f === "all" ? all.length : f === "unfoldered" ? all.filter((it) => !it.folderName).length : all.filter((it) => it.folderName === f).length;
+
         screen.innerHTML = `
           <div style="padding-top:56px;height:100%;display:flex;flex-direction:column;background:var(--km-bg)">
             <div style="padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between">
               <button class="km-btn km-btn-ghost" data-action="home" style="display:inline-flex;align-items:center;gap:4px;padding:8px 6px">${icon("back", 18)}戻る</button>
               <div style="font-size:13px;font-weight:600;color:var(--km-text-3)">アーカイブ</div>
-              <div style="width:56px"></div>
+              <button class="km-btn km-btn-ghost" data-action="add-folder" style="padding:8px 6px;color:var(--km-text-2)">${icon("folderPlus", 18)}</button>
             </div>
             <div style="padding:0 20px 8px">
               <div style="background:var(--km-bg-2);border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;color:var(--km-text-3)">
@@ -847,48 +906,50 @@
                 ${state.archiveQuery ? `<button class="km-btn" data-action="clear-search" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
               </div>
             </div>
-            <div class="km-scroll" style="flex:1;padding:8px 0 28px">
-              ${filtered ? archiveResults(filtered) : archiveFolders(folders, items)}
+            ${state.archiveQuery ? "" : `
+            <div style="padding:0 20px 8px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none">
+              ${[{ id: "all", label: "全て" }, { id: "unfoldered", label: "フォルダなし" }, ...state.folders.map((f) => ({ id: f, label: f }))].map((f) => `
+                <button class="km-btn" data-archive-folder="${f.id}" style="flex-shrink:0;background:${state.archiveFolder === f.id ? "var(--km-moss)" : "var(--km-card)"};color:${state.archiveFolder === f.id ? "#fff" : "var(--km-text)"};border:1px solid ${state.archiveFolder === f.id ? "transparent" : "var(--km-stroke)"};border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600">
+                  ${escapeHTML(f.label)} <span style="opacity:0.7">${countIn(f.id)}</span>
+                </button>`).join("")}
+            </div>`}
+            <div class="km-scroll" style="flex:1;padding:0 20px 28px">
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:4px">
+                ${displayItems.length === 0
+                  ? `<div class="km-meta" style="text-align:center;padding:32px">${state.archiveQuery ? "該当なし" : "まだ保存はありません"}</div>`
+                  : displayItems.map((item) => archiveRow(item)).join("")}
+              </div>
             </div>
           </div>
+          ${state.showAddFolderSheet ? renderAddFolderSheet() : ""}
         `;
       }
 
-      function archiveResults(items) {
-        return `<div style="padding:8px 20px"><div class="km-eyebrow" style="margin-bottom:10px">結果 ${items.length}件</div><div style="display:flex;flex-direction:column;gap:8px">${items.map((item) => archiveRow(item)).join("") || `<div class="km-meta" style="text-align:center;padding:24px">該当なし。</div>`}</div></div>`;
-      }
-
-      function archiveFolders(folders, items) {
+      function renderAddFolderSheet() {
         return `
-          <div style="padding:0 20px 14px">
-            <div class="km-eyebrow" style="margin-bottom:10px">自動分類</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-              ${folders.map((f) => {
-                const count = items.filter((it) => it.folder === f || it.category === f).length;
-                return `<button class="km-card" data-folder="${f}" style="padding:14px;text-align:left;cursor:pointer;background:${state.archiveFolder === f ? "var(--km-moss-bg)" : "var(--km-card)"};border-color:${state.archiveFolder === f ? "var(--km-moss-line)" : "var(--km-stroke)"}">
-                  <div style="color:${state.archiveFolder === f ? "var(--km-moss)" : "var(--km-text-2)"}">${icon("folder", 20)}</div>
-                  <div style="font-size:15px;font-weight:700;margin-top:8px">${f}</div>
-                  <div class="km-meta" style="margin-top:2px">${count}件</div>
-                </button>`;
-              }).join("")}
+          <div data-action="close-add-folder" style="position:absolute;inset:0;background:rgba(0,0,0,0.35);animation:km-fade-in 200ms ease;z-index:70"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:var(--km-bg);border-top-left-radius:22px;border-top-right-radius:22px;padding:10px 20px 28px;animation:km-sheet-in 280ms cubic-bezier(.32,.72,.4,1);z-index:71">
+            <div style="width:36px;height:4px;border-radius:2px;background:var(--km-stroke-2);margin:0 auto 10px"></div>
+            <div style="font-size:17px;font-weight:700;letter-spacing:-0.02em;margin-bottom:14px">新規フォルダ</div>
+            <div style="background:var(--km-card);border:1px solid var(--km-stroke);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+              ${icon("folder", 18)}
+              <input id="addFolderInput" value="${escapeHTML(state.newFolderDraft)}" placeholder="フォルダ名" style="flex:1;font-size:15px" />
             </div>
-          </div>
-          <div style="padding:8px 20px">
-            <div class="km-eyebrow" style="margin-bottom:10px">${state.archiveFolder}</div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              ${items.filter((it) => (it.folder || it.category) === state.archiveFolder).map((item) => archiveRow(item)).join("") || `<div class="km-meta" style="text-align:center;padding:20px">まだ保存はありません</div>`}
-            </div>
+            <button class="km-btn km-btn-primary" data-action="confirm-add-folder" style="width:100%;margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px">作成</button>
+            <button data-action="close-add-folder" class="km-btn km-btn-ghost" style="width:100%;margin-top:8px;padding:12px 14px;background:var(--km-card-2);border-radius:12px;color:var(--km-text-2)">キャンセル</button>
           </div>
         `;
       }
 
       function archiveRow(item) {
-        const id = escapeHTML(item.sourceHash || item.savedAt || item.title);
-        return `<button class="km-card" data-open-archive="${id}" style="padding:12px 14px;display:flex;align-items:center;gap:12px;border-color:${item.current ? "var(--km-moss-line)" : "var(--km-stroke)"};background:${item.current ? "var(--km-moss-bg)" : "var(--km-card)"};text-align:left;width:100%">
+        const id = item.sourceHash || item.savedAt || item.title;
+        return `<button class="km-card" data-open-archive="${escapeHTML(id)}" style="padding:12px 14px;display:flex;align-items:center;gap:12px;border-color:var(--km-stroke);background:var(--km-card);text-align:left;width:100%">
           <div style="flex:1;min-width:0">
             <div style="font-size:14.5px;font-weight:600;line-height:1.4;text-wrap:pretty">${escapeHTML(item.title)}</div>
             <div class="km-meta" style="margin-top:4px;display:flex;gap:8px;align-items:center">
-              <span>${escapeHTML(item.folder || item.category || "その他")}</span><span>·</span><span>${escapeHTML(item.date || "保存済み")}</span>
+              <span>${escapeHTML(item.category || item.folder || "")}</span>
+              ${item.folderName ? `<span>·</span><span style="color:var(--km-moss)">${icon("folder", 11)} ${escapeHTML(item.folderName)}</span>` : ""}
+              <span>·</span><span>${escapeHTML(item.date || "保存済み")}</span>
             </div>
           </div>
           <div style="color:var(--km-text-4)">${icon("chevron", 14)}</div>
@@ -941,6 +1002,7 @@
           if (!response.ok) throw new Error(json.message || "生成できませんでした。");
           state.result = json;
           state.resultTab = "summary";
+          state.logQuery = "";
           state.phase = "result";
         } catch (error) {
           state.phase = "setup";
@@ -989,11 +1051,22 @@
           state.archiveQuery = event.target.value;
           render();
         }
+        if (event.target.id === "logQuery") {
+          state.logQuery = event.target.value;
+          render();
+        }
+        if (event.target.id === "newFolderInput") {
+          state.newFolderDraft = event.target.value;
+        }
+        if (event.target.id === "addFolderInput") {
+          state.newFolderDraft = event.target.value;
+        }
       });
 
       screen.addEventListener("click", (event) => {
-        const target = event.target.closest("[data-action], [data-focus], [data-category], [data-result-tab], [data-folder], [data-edit-line], [data-pick-speaker]");
+        const target = event.target.closest("[data-action],[data-focus],[data-category],[data-result-tab],[data-archive-folder],[data-edit-line],[data-pick-speaker],[data-open-archive],[data-save-to-folder]");
         if (!target) return;
+
         const action = target.dataset.action;
         if (action === "start") { state.phase = "setup"; render(); }
         if (action === "home") { state.phase = "home"; render(); }
@@ -1002,18 +1075,56 @@
         if (action === "clear-note") { state.note = ""; render(); }
         if (action === "generate") generate();
         if (action === "copy") copyCurrent();
-        if (action === "save") saveCurrentResult();
+        if (action === "save") { state.showFolderPicker = true; render(); }
+        if (action === "close-folder-picker") { state.showFolderPicker = false; state.newFolderDraft = ""; render(); }
         if (action === "clear-search") { state.archiveQuery = ""; render(); }
+        if (action === "clear-log-search") { state.logQuery = ""; render(); }
         if (action === "close-sheet") { state.editingLine = null; render(); }
+        if (action === "add-folder") { state.showAddFolderSheet = true; state.newFolderDraft = ""; render(); }
+        if (action === "close-add-folder") { state.showAddFolderSheet = false; state.newFolderDraft = ""; render(); }
+        if (action === "confirm-add-folder") {
+          const input = document.querySelector("#addFolderInput");
+          const name = (input?.value || state.newFolderDraft).trim();
+          if (name && !state.folders.includes(name)) {
+            state.folders.push(name);
+            persistFolders();
+          }
+          state.showAddFolderSheet = false;
+          state.newFolderDraft = "";
+          render();
+        }
+        if (action === "create-and-save-folder") {
+          const input = document.querySelector("#newFolderInput");
+          const name = (input?.value || state.newFolderDraft).trim();
+          if (name) {
+            if (!state.folders.includes(name)) {
+              state.folders.push(name);
+              persistFolders();
+            }
+            saveToFolder(name);
+          }
+        }
+
         if (target.dataset.focus) { state.focus = target.dataset.focus; render(); }
         if (target.dataset.category) { state.category = target.dataset.category; render(); }
-        if (target.dataset.resultTab) { state.resultTab = target.dataset.resultTab; render(); }
-        if (target.dataset.folder) { state.archiveFolder = target.dataset.folder; render(); }
+        if (target.dataset.resultTab) {
+          state.resultTab = target.dataset.resultTab;
+          state.logQuery = "";
+          render();
+        }
+        if (target.dataset.archiveFolder) { state.archiveFolder = target.dataset.archiveFolder; render(); }
+
+        if ("saveToFolder" in target.dataset) {
+          saveToFolder(target.dataset.saveToFolder || null);
+        }
+
         if (target.dataset.openArchive) {
-          const item = state.archives.find((entry) => (entry.sourceHash || entry.savedAt || entry.title) === target.dataset.openArchive);
+          const id = target.dataset.openArchive;
+          const item = state.archives.find((entry) => (entry.sourceHash || entry.savedAt || entry.title) === id);
           if (item) {
             state.result = item;
             state.resultTab = "summary";
+            state.logQuery = "";
             state.phase = "result";
             render();
           }

@@ -1,25 +1,25 @@
-# Security
+# セキュリティ
 
-## Hard Prohibitions
-- No AI API key in iOS code, Info.plist, assets, or Git.
-- No real audio, recording, microphone permission, Speech Recognition permission, audio upload, or audio file import in MVP.
-- No logging pasted transcription text or generated minutes.
-- No sending pasted text to analytics or crash logs.
-- No automatic external sharing.
+## 絶対禁止事項
+- iOSコード・Info.plist・アセット・GitにAI APIキーを置かない
+- MVPに実際の音声・録音・マイク権限・Speech Recognition権限・音声アップロード・音声ファイルインポートを追加しない
+- 貼り付けられた文字起こしテキストや生成済み議事録をログに記録しない
+- 貼り付けテキストをアナリティクスやクラッシュログに送信しない
+- 外部への自動共有を行わない
 
-## Required Controls
-- iOS calls only the Koremite backend.
-- Backend calls the AI provider.
-- Backend validates input size.
-- Backend applies IP-based MVP rate limiting.
-- Backend uses timeouts and bounded retries.
-- Backend errors never include transcript text.
-- Local archive has delete flow.
+## 必須コントロール
+- iOSはKoremiteバックエンドのみを呼び出す
+- バックエンドがAIプロバイダーを呼び出す
+- バックエンドが入力サイズをバリデートする
+- バックエンドがMVP期間はIPベースのレート制限を適用する
+- バックエンドがタイムアウトと上限付きリトライを使用する
+- バックエンドのエラーメッセージに文字起こし本文を含めない
+- ローカルアーカイブに削除フローを設ける
 
-## Logging Policy
-Allowed: request id, status code, processing mode, duration, character count range, cache hit boolean.
+## ログ出力ポリシー
+**許可**: リクエストID・ステータスコード・処理モード・処理時間・文字数範囲・キャッシュヒットフラグ
 
-Forbidden: transcript body, generated summary/minutes/full log, names extracted from transcript, full prompt, AI raw response.
+**禁止**: 文字起こし本文・生成された要約/議事録/全量ログ・文字起こしから抽出された名前・プロンプト全文・AIの生レスポンス
 
-## Secrets
-Use `.env.example` for names only. Real keys live in deployment secrets or local uncommitted environment files.
+## シークレット管理
+`.env.example` にはキー名のみを記載する。実際のキーはデプロイのシークレット管理または未コミットのローカル環境ファイルに置く。

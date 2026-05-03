@@ -11,6 +11,7 @@ final class ArchivedMinutesRecord {
     var overview: String
     var createdAt: Date
     var resultData: Data
+    var folderID: String?
 
     init(result: MinutesResult) throws {
         self.recordID = result.id.uuidString
@@ -21,13 +22,15 @@ final class ArchivedMinutesRecord {
         self.overview = result.detailedMinutes.overview
         self.createdAt = result.createdAt
         self.resultData = try JSONEncoder().encode(result)
+        self.folderID = nil
     }
 
     func decodedResult() -> MinutesResult? {
         guard var result = try? JSONDecoder().decode(MinutesResult.self, from: resultData) else {
             return nil
         }
-
+        // Use recordID as the stable identity so list diffs are correct across refreshes
+        result.id = UUID(uuidString: recordID) ?? result.id
         result.createdAt = createdAt
         result.sourceHash = sourceHash
         return result

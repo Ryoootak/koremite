@@ -1,63 +1,64 @@
 # Koremite
 
-Koremite is an iPhone app for turning pasted transcription text into minutes that are easy to share and easy to revisit.
+Koremiteは、貼り付けた文字起こしテキストを送りやすく・見返しやすい議事録に整えるiPhoneアプリです。
 
-The MVP workflow is simple: copy text transcribed by Voice Memos or another app, paste it into Koremite, choose the meeting purpose and focus points, generate minutes, then copy/share/save the result.
+MVPの使い方はシンプルです。ボイスメモや別のアプリで文字起こしされたテキストをコピーし、Koremiteに貼り付け、会議の用途と重視ポイントを選んで議事録を生成、コピー/共有/保存する。
 
-## What It Does
-- Accepts pasted transcription text.
-- Generates a short shareable summary for LINE/messages.
-- Generates detailed meeting minutes.
-- Saves generated minutes locally.
-- Searches and deletes saved archives.
+## できること
+- 貼り付けた文字起こしテキストを受け付ける
+- LINEやメッセージで送れる短い共有版を生成する
+- 詳細な議事録を生成する
+- 全量ログ（話者別エントリ）を保持する
+- 生成済み議事録をローカルに保存する
+- フォルダ管理、検索、削除ができる
 
-## What It Does Not Do
-- No recording.
-- No audio file import.
-- No microphone permission.
-- No Speech Recognition permission.
-- No audio upload.
-- No login, billing, iCloud sync, or Share Extension in MVP.
+## できないこと
+- 録音なし
+- 音声ファイルインポートなし
+- マイク権限なし
+- Speech Recognition権限なし
+- 音声アップロードなし
+- MVPにログイン・課金・iCloud Sync・Share Extensionなし
 
-## MVP Scope
-SwiftUI input, result, and archive screens; `MockAIClient`; backend-facing `RemoteAIClient`; local archive; copy/share; errors and retry; privacy/security docs; cost-aware AI processing design.
+## MVPのスコープ
+SwiftUI入力/結果/アーカイブ画面・`MockAIClient`・バックエンド接続用`RemoteAIClient`・ローカルアーカイブ（フォルダ管理付き）・コピー/共有・エラーとリトライ・プライバシー/セキュリティドキュメント・コストを意識したAI処理設計
 
-## Technology
-- iOS 17+, SwiftUI, Swift Concurrency, SwiftData
-- MVVM/light Clean Architecture
-- Backend: Cloudflare Workers + TypeScript
-- AI route: iOS -> Koremite backend -> AI API
-- Archive: SwiftData on device
+## 技術スタック
+- iOS 17+・SwiftUI・Swift Concurrency・SwiftData
+- MVVM/軽量クリーンアーキテクチャ
+- バックエンド: Cloudflare Workers + TypeScript
+- AI経路: iOS → Koremiteバックエンド → AI API
+- アーカイブ: デバイス上のSwiftData（フォルダ管理付き）
 
-## Run iOS
-Open `Koremite.xcodeproj` in Xcode and run the `Koremite` scheme on an iOS 17+ simulator.
+## iOSの起動方法
+`Koremite.xcodeproj` をXcodeで開き、iOS 17+シミュレータで `Koremite` スキームを実行する。
 
-CLI build:
+CLIビルド:
 
 ```sh
 xcodebuild -scheme Koremite -destination 'platform=iOS Simulator,name=iPhone 15' build
 ```
 
-## Run Backend
+## バックエンドの起動方法
 ```sh
 cd Backend
 npm install
 npm run dev
 ```
 
-## Vercel Test Page
-Vercel can host a small browser test page at `/`. It calls `/api/minutes-test`, which forwards requests to the Cloudflare Workers staging API.
+## Vercelテストページ
+Vercelが `/` に小さなブラウザテストページをホストできる。`/api/minutes-test` 経由でCloudflare Workersステージング APIにリクエストを転送する。
 
-Required Vercel environment variable:
+必要なVercel環境変数:
 
 - `KOREMITE_API_BASE_URL=https://koremite-api-staging.koremite.workers.dev`
 
-Do not add `GEMINI_API_KEY` to Vercel. Gemini API keys stay only in Cloudflare Workers secrets.
+`GEMINI_API_KEY` はVercelに追加しない。GeminiのAPIキーはCloudflare Workersシークレットにのみ置く。
 
-## Environment
-Copy `Backend/.env.example` to your local environment provider. Never commit real secrets.
+## 環境変数
+`Backend/.env.example` をローカルの環境変数プロバイダーにコピーする。実際のシークレットは絶対にコミットしない。
 
-Required backend variables:
+必要なバックエンド変数:
 - `GEMINI_API_KEY`
 - `GEMINI_BASE_URL`
 - `AI_MODEL_FAST`
@@ -70,14 +71,14 @@ Required backend variables:
 - `RATE_LIMIT_MAX_REQUESTS`
 - `RATE_LIMIT_WINDOW_SECONDS`
 
-## Tests
-- iOS: `xcodebuild test -project Koremite.xcodeproj -scheme Koremite -destination 'platform=iOS Simulator,name=iPhone 15'`.
-- Backend: `cd Backend && npm test`.
-- Backend typecheck: `cd Backend && npm run typecheck`.
-- Vercel test function syntax: `npm run check:vercel`.
-- GitHub Actions: `.github/workflows/ci.yml` runs backend tests/typecheck, Vercel function syntax check, and iOS simulator build/test on every push/PR.
+## テスト
+- iOS: `xcodebuild test -project Koremite.xcodeproj -scheme Koremite -destination 'platform=iOS Simulator,name=iPhone 15'`
+- バックエンド: `cd Backend && npm test`
+- バックエンドtypecheck: `cd Backend && npm run typecheck`
+- Vercel Functionの構文チェック: `npm run check:vercel`
+- GitHub Actions: `.github/workflows/ci.yml` がpush/PRごとにバックエンドテスト/typecheck・Vercel構文チェック・iOSシミュレータビルド/テストを実行
 
-Current local limitation: `xcodebuild` cannot run while `xcode-select -p` points to `/Library/Developer/CommandLineTools`. Later verification:
+ローカル制限事項: `xcode-select -p` が `/Library/Developer/CommandLineTools` を指している間は `xcodebuild` が実行できない。解決方法:
 
 ```sh
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
@@ -85,14 +86,14 @@ xcodebuild -list -project Koremite.xcodeproj
 xcodebuild test -project Koremite.xcodeproj -scheme Koremite -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 
-## Directory
-- `Koremite/`: iOS app
-- `Backend/`: API worker
-- `.github/workflows/`: CI for GitHub Actions
-- `docs/`: product and engineering docs
+## ディレクトリ構成
+- `Koremite/`: iOSアプリ
+- `Backend/`: APIワーカー
+- `.github/workflows/`: GitHub Actions CI
+- `docs/`: プロダクト・エンジニアリングドキュメント
 
-## Development Notes
-Do not place AI API keys in iOS code. Do not log pasted text. Keep the MVP text-only. Cost minimization is part of the product: reuse cached results, bound inputs/retries, and use staged processing for long text.
+## 開発上の注意
+AI APIキーをiOSコードに置かない。貼り付けテキストをログに記録しない。MVPはテキスト専用を維持する。コスト最小化は製品の一部: キャッシュ結果の再利用・入力/リトライの上限・長文の段階的処理を実施する。
 
-## App Store Notes
-Before submission, complete `docs/APP_STORE_CHECKLIST.md`, publish a privacy policy, confirm Privacy Nutrition Labels, and verify no microphone or Speech Recognition usage descriptions are present unless future scope explicitly adds them.
+## App Store申請前
+申請前に `docs/APP_STORE_CHECKLIST.md` を完了し、プライバシーポリシーを公開し、Privacy Nutrition Labelsを確認し、将来のスコープで明示的に追加しない限りマイクやSpeech Recognitionの利用説明文がないことを確認する。

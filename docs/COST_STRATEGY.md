@@ -1,34 +1,34 @@
-# Cost Strategy
+# コスト戦略
 
-Cost minimization is a core Koremite product value. Users should receive useful minutes without sending every full transcript to an expensive model every time.
+コスト最小化はKoremiteのコア製品価値の一つ。毎回フル文字起こしを高コストモデルに送らなくても有用な議事録が得られるようにする。
 
-## Processing Modes
-- `short`: small input, one fixed-schema request.
-- `normal`: moderate input, one fixed-schema request with stricter output bounds.
-- `long_chunked`: long input, chunk compression first, then final merge.
+## 処理モード
+- `short`: 短い入力。固定スキーマで1リクエスト。
+- `normal`: 中程度の入力。出力上限を厳しくした固定スキーマで1リクエスト。
+- `long_chunked`: 長い入力。チャンク圧縮を先に行い、最終マージ。
 
-## Planned Thresholds
-- Warn after 8,000 characters.
-- Hard limit around 30,000 characters for MVP, enforced in iOS and backend.
-- Backend environment controls exact values.
+## 計画中のしきい値
+- 8,000文字以上で警告
+- MVPのハード上限は約30,000文字（iOS側とバックエンド両方で強制）
+- 正確な値はバックエンド環境変数で制御
 
-## Techniques
-- Compute source hash on-device and backend.
-- Reuse local archive results for matching source hash.
-- Reuse backend cache for matching source hash during `CACHE_TTL_SECONDS`.
-- Return share summary and detailed minutes together in one response. The backend may keep schema-compatible log fields internally, but the user-facing MVP does not expose a full transcription tab.
-- Use fixed JSON schema to reduce parsing retries.
-- Chunk long text before final generation using `CHUNK_CHAR_LIMIT`.
-- Use fast/low-cost model for extraction and compression.
-- Use quality model only when final synthesis requires it.
-- Bound output tokens, timeout, and retry count.
-- Avoid infinite retry loops.
-- Keep model names configurable via backend environment variables.
+## 使用するテクニック
+- デバイス側とバックエンドの両方でsourceHashを計算する
+- 同じsourceHashのローカルアーカイブ結果を再利用する
+- `CACHE_TTL_SECONDS` の間、同じsourceHashに対するバックエンドキャッシュを再利用する
+- 共有版と詳細議事録、全量ログを1レスポンスで返す
+- 固定JSONスキーマでパースリトライを削減する
+- `CHUNK_CHAR_LIMIT` 単位で長文をチャンク分割してから最終生成する
+- 抽出・圧縮には高速/低コストモデルを使用する
+- 最終合成が必要な場合のみ高品質モデルを使用する
+- 出力トークン・タイムアウト・リトライ回数を制限する
+- 無限リトライループを避ける
+- モデル名はバックエンド環境変数で切り替え可能にする
 
-## Product Copy
-Cost language should be reassuring, not technical. Example: "長文のため、段階的に整理します。"
+## UIコピー方針
+コストに関する文言は技術的でなく安心感を与えるものにする。例：「長文のため、段階的に整理します。」
 
-## Future
-- Durable server-side cache or KV-backed cache keyed by normalized input hash.
-- User-visible "already generated" reuse prompt.
-- Optional paid tier only after MVP validation.
+## 将来の展望
+- 正規化した入力ハッシュをキーとするKV永続キャッシュ
+- 「同じ内容を以前に生成済み」を示す再利用プロンプト
+- MVPバリデーション後にのみ有料ティアを検討

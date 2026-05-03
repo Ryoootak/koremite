@@ -1,43 +1,41 @@
-# Product Spec
+# プロダクト仕様
 
-## Name
+## アプリ名
 Koremite
 
-## One-Line Value
-Paste transcription text and turn it into a short shareable message and detailed minutes.
+## 一言説明
+文字起こしテキストを貼り付けるだけで、送れる共有版と詳細な議事録に整えます。
 
-## MVP Premise
-Koremite does not handle real audio. Users copy transcription text from iPhone Voice Memos or another app and paste it into Koremite. The app sends that text to the Koremite backend for AI processing.
+## MVPの前提
+Koremiteは実際の音声を扱わない。ユーザーがiPhone「ボイスメモ」などのアプリで文字起こしされたテキストをコピーし、Koremiteに貼り付ける。アプリはそのテキストをKoremiteバックエンドへ送信してAI処理を行う。
 
-## Core Users
-- People sharing housing consultation notes with family.
-- People turning sales calls, consultations, or meetings into concise records.
-- People reducing "said / did not say" confusion by keeping searchable local records.
+## 主なユーザー像
+- 住宅相談の内容を家族と共有したい人
+- 商談・相談・会議を簡潔な記録にまとめたい人
+- 「言った・言わない」を防ぐために検索可能なローカル記録を残したい人
 
-## Primary Flow
-1. Copy transcription text in another app.
-2. Open Koremite.
-3. Paste text.
-4. Select speakers, category, and focus points.
-5. Generate minutes.
-6. Review share summary and detailed minutes.
-7. Copy, share with iOS share sheet, or save to archive.
+## 主要フロー
+1. 別アプリで文字起こしテキストをコピーする
+2. Koremiteを開く
+3. テキストを貼り付ける
+4. 話者・用途・重視ポイントを選ぶ
+5. 議事録を生成する
+6. 共有版と詳細議事録を確認する
+7. コピー・iOSシェアシートで送る・アーカイブに保存する
 
-## MVP Includes
-- Pasted text input
-- Character count, input limit, long text warning
-- Speaker candidates
-- Category: 住宅, 仕事, 家庭, その他
-- Focus points: 決定事項, やること, 金額, スケジュール, 懸念点, 感情
-- AI generation through backend
-- Loading, error, retry
-- Result tabs: 共有版, 議事録
-- Copy minutes, copy/share summary, save
-- Local archive, search, delete
-- Privacy and App Store preparation docs
+## MVPに含まれるもの
+- テキスト貼り付け入力
+- 文字数カウント・入力制限・長文警告
+- 話者候補入力
+- 用途: 住宅・仕事・家庭・その他
+- 重視ポイント: 決定事項・やること・金額・スケジュール・懸念点・感情
+- バックエンド経由のAI生成
+- ローディング・エラー・リトライ
+- 結果タブ: 共有版・議事録・全量ログ（タブ内検索付き）
+- 議事録コピー・共有版コピー/共有・保存
+- フォルダ管理（作成・削除・名前変更・手動割り当て）
+- ローカルアーカイブ（フォルダ階層・検索・削除）
+- プライバシー・App Store準備ドキュメント
 
-## MVP Excludes
-Recording, audio import, microphone permission, Speech Recognition, audio upload, direct Voice Memos audio import, speaker diarization, login, billing, iCloud sync, Share Extension.
-
-## Design Reference Notes
-The reference HTML uses a warm off-white/beige background, white cards, moss-green accent, pill chips, segmented controls, rounded iOS-like surfaces, generous spacing, and calm Japanese copy. Koremite keeps that mood but replaces audio-looking UI with pasted-text-first screens.
+## MVPに含まれないもの
+録音・音声インポート・マイク権限・Speech Recognition・音声アップロード・ボイスメモ音声直接インポート・話者分離・ログイン・課金・iCloudSync・Share Extension

@@ -1,20 +1,20 @@
-# Privacy
+# プライバシー
 
-## User Notice Draft
+## ユーザー告知文（案）
 Koremiteは、貼り付けられた文字起こしテキストを議事録生成のためにKoremiteのサーバーへ送信します。音声ファイルの収録、アップロード、マイク利用、Speech Recognition権限の利用はMVPでは行いません。生成結果はユーザーの操作により端末内に保存、コピー、共有できます。
 
-## Privacy Policy Draft
-Koremite collects pasted transcription text only when the user taps the generate button. The text is sent to the Koremite backend to generate summaries and minutes through an AI provider. Koremite does not collect audio files, record audio, or access the microphone. Koremite does not sell personal data. Locally saved minutes remain on the device unless the user explicitly shares them.
+## プライバシーポリシー（案）
+Koremiteは、ユーザーが生成ボタンをタップした場合にのみ貼り付けられた文字起こしテキストを収集します。テキストはKoremiteバックエンドに送信され、AIプロバイダーを通じて要約と議事録が生成されます。Koremiteは音声ファイルの収集・録音・マイクへのアクセスを行いません。個人データの販売は行いません。ローカルに保存された議事録は、ユーザーが明示的に共有するまでデバイス上に留まります。
 
-## App Store Privacy Details Draft
-- Data collected: User Content, only pasted text submitted for AI processing.
-- Linked to user: No account in MVP.
-- Tracking: No.
-- Location: No.
-- Contacts: No.
-- Microphone: No.
-- Speech Recognition: No.
-- Diagnostics: avoid including user content.
+## App StoreプライバシーNutrition Labels（案）
+- 収集するデータ: ユーザーコンテンツ（AI処理のために送信された貼り付けテキストのみ）
+- ユーザーへのリンク: MVPではアカウントなし
+- トラッキング: なし
+- 位置情報: なし
+- 連絡先: なし
+- マイク: なし
+- Speech Recognition: なし
+- 診断情報: ユーザーコンテンツを含めない
 
-## Retention
-MVP backend should avoid storing transcript bodies. Local archives stay on device until the user deletes them.
+## データ保持方針
+MVPバックエンドは文字起こし本文の保存を避ける。ローカルアーカイブはユーザーが削除するまでデバイスに残る。

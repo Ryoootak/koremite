@@ -4,8 +4,19 @@ import UIKit
 struct ResultView: View {
     @EnvironmentObject private var archiveStore: ArchiveStore
     @State private var selectedTab: ResultTab = .share
+    @State private var showFolderPicker = false
     @State private var didSave = false
+    @State private var saveAlertTitle = "保存しました"
     let result: MinutesResult
+
+    private var currentFolderID: String? {
+        archiveStore.folderAssignments[result.id.uuidString]
+    }
+
+    private var currentFolderName: String? {
+        guard let fid = currentFolderID else { return nil }
+        return archiveStore.folders.first { $0.folderID == fid }?.name
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -26,6 +37,8 @@ struct ResultView: View {
                         ShareSummaryView(summary: result.shareSummary)
                     case .minutes:
                         DetailedMinutesView(minutes: result.detailedMinutes)
+                    case .fullLog:
+                        FullLogView(entries: result.fullLog)
                     }
 
                     Spacer(minLength: 96)
@@ -37,7 +50,20 @@ struct ResultView: View {
         }
         .navigationTitle("生成結果")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("保存しました", isPresented: $didSave) {
+        .sheet(isPresented: $showFolderPicker) {
+            FolderPickerSheet(currentFolderID: currentFolderID) { selectedFolderID in
+                if archiveStore.isSaved(result) {
+                    saveAlertTitle = "フォルダを変更しました"
+                    archiveStore.setFolder(for: result, folderID: selectedFolderID)
+                } else {
+                    saveAlertTitle = "保存しました"
+                    archiveStore.save(result, folderID: selectedFolderID)
+                }
+                didSave = true
+            }
+            .environmentObject(archiveStore)
+        }
+        .alert(saveAlertTitle, isPresented: $didSave) {
             Button("OK", role: .cancel) {}
         }
     }
@@ -46,9 +72,17 @@ struct ResultView: View {
         VStack(alignment: .leading, spacing: KMSpacing.xs) {
             Text(result.title)
                 .font(.title2.bold())
-            Text("\(result.category.rawValue) ・ \(result.costInfo.inputLength)文字 ・ \(result.costInfo.processingMode.rawValue)")
-                .font(.caption)
-                .foregroundStyle(KMColor.secondaryText)
+            HStack(spacing: 4) {
+                Text("\(result.category.rawValue) ・ \(result.costInfo.inputLength)文字 ・ \(result.costInfo.processingMode.rawValue)")
+                if let folderName = currentFolderName {
+                    Text("・")
+                    Image(systemName: "folder")
+                        .font(.caption)
+                    Text(folderName)
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(KMColor.secondaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -68,10 +102,9 @@ struct ResultView: View {
             .buttonStyle(.bordered)
 
             Button {
-                archiveStore.save(result)
-                didSave = true
+                showFolderPicker = true
             } label: {
-                Label("保存", systemImage: "tray.and.arrow.down")
+                Label(archiveStore.isSaved(result) ? "フォルダ" : "保存", systemImage: archiveStore.isSaved(result) ? "folder" : "tray.and.arrow.down")
             }
             .buttonStyle(.borderedProminent)
             .tint(KMColor.moss)
@@ -83,21 +116,25 @@ struct ResultView: View {
     }
 }
 
+// MARK: - Tabs
+
 private enum ResultTab: String, CaseIterable, Identifiable {
     case share
     case minutes
+    case fullLog
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .share:
-            return "共有版"
-        case .minutes:
-            return "議事録"
+        case .share: return "共有版"
+        case .minutes: return "議事録"
+        case .fullLog: return "全量ログ"
         }
     }
 }
+
+// MARK: - Share Summary
 
 private struct ShareSummaryView: View {
     let summary: ShareSummary
@@ -116,6 +153,8 @@ private struct ShareSummaryView: View {
         }
     }
 }
+
+// MARK: - Detailed Minutes
 
 private struct DetailedMinutesView: View {
     let minutes: DetailedMinutes
@@ -138,6 +177,75 @@ private struct DetailedMinutesView: View {
         }
     }
 }
+
+// MARK: - Full Log
+
+private struct FullLogView: View {
+    let entries: [FullLogEntry]
+    @State private var query = ""
+
+    private var filtered: [FullLogEntry] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return entries }
+        return entries.filter {
+            $0.speaker.localizedCaseInsensitiveContains(trimmed)
+                || $0.text.localizedCaseInsensitiveContains(trimmed)
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: KMSpacing.sm) {
+            // Search bar
+            HStack(spacing: KMSpacing.sm) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(KMColor.tertiaryText)
+                TextField("発言・話者を検索", text: $query)
+                    .textFieldStyle(.plain)
+                if !query.isEmpty {
+                    Button {
+                        query = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(KMColor.tertiaryText)
+                    }
+                }
+            }
+            .padding(KMSpacing.sm)
+            .background(KMColor.groupedBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            if entries.isEmpty {
+                KMCard {
+                    Text("全量ログがありません")
+                        .foregroundStyle(KMColor.tertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else if filtered.isEmpty {
+                KMCard {
+                    Text("検索結果なし")
+                        .foregroundStyle(KMColor.tertiaryText)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                ForEach(filtered) { entry in
+                    KMCard {
+                        VStack(alignment: .leading, spacing: KMSpacing.xs) {
+                            Text(entry.speaker)
+                                .font(.caption.bold())
+                                .foregroundStyle(KMColor.moss)
+                            Text(entry.text)
+                                .font(.body)
+                                .lineSpacing(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Shared Components
 
 private struct ListBlock: View {
     let title: String
