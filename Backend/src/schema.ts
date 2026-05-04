@@ -115,16 +115,16 @@ export function safeFallbackResponse(request: GenerateRequest, processingMode: P
   return {
     title: `${request.category}の打ち合わせメモ`,
     shareSummary: {
-      text: "議事録の自動整形で一部を確認できませんでした。原文ログを確認しながら、決定事項、TODO、確認事項を見直してください。",
+      text: "自動整形で一部を確認できませんでした。元の記録を見ながら、内容を確認してください。",
       decisions: [],
       todos: [],
-      confirmationPoints: ["AI出力の形式を確認できなかったため、原文ログの確認が必要です。"]
+      confirmationPoints: []
     },
     detailedMinutes: {
-      overview: "入力された文字起こしは受け付けましたが、AI出力の形式検証に失敗しました。安全のため、入力にない内容を補わず、確認が必要な状態として返しています。",
+      overview: "入力された文字起こしは受け付けましたが、AI出力の形式検証に失敗しました。安全のため、入力にない内容を補わず、元の記録を確認できる状態で返しています。",
       topics: [],
       decisions: [],
-      openIssues: ["AI出力のJSON形式を再確認する必要があります。"],
+      openIssues: ["AI出力の形式を確認できなかったため、元の記録を見返す必要があります。"],
       todos: [],
       importantRemarks: [],
       nextMeetingNotes: []

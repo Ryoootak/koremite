@@ -64,7 +64,7 @@ export default {
       await writeCached(validated.request.sourceHash, normalized, cacheTtlSeconds);
       return json(normalized);
     } catch {
-      return json({ message: "議事録を生成できませんでした。時間をおいてもう一度お試しください。" }, 502);
+      return json({ message: "まとめを生成できませんでした。時間をおいてもう一度お試しください。" }, 502);
     }
   }
 };

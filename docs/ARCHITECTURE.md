@@ -26,7 +26,7 @@ iOS SwiftUIアプリ -> Koremiteバックエンド -> AIプロバイダー
 7. ユーザーがコピー/共有/保存する
 
 ## ストレージ
-SwiftDataが`ArchivedMinutesRecord`を通じて生成済み議事録をデバイスに保存する。保存対象は生成出力・カテゴリ・作成日・sourceHash・検索メタデータ・フォルダID。バックエンドのシークレットは保存しない。
+SwiftDataが`ArchivedMinutesRecord`を通じて生成済みまとめをデバイスに保存する。保存対象は生成出力・カテゴリ・作成日・sourceHash・検索メタデータ・フォルダID。バックエンドのシークレットは保存しない。
 
 フォルダ管理は`FolderRecord`（SwiftData）で行い、`ArchiveStore`が`folderAssignments`ディクショナリを通じてView層にID→名前のマッピングを提供する。
 

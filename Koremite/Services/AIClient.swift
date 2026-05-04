@@ -18,7 +18,7 @@ enum AIClientError: LocalizedError {
         case .tooLong(let limit):
             return "入力が長すぎます。\(limit)文字以内に調整してください。"
         case .invalidResponse:
-            return "議事録の形式を読み取れませんでした。もう一度お試しください。"
+            return "まとめの形式を読み取れませんでした。もう一度お試しください。"
         case .serverMessage(let message):
             return message
         case .network:

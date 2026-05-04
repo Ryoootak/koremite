@@ -9,7 +9,7 @@
   "transcript": "string",
   "category": "住宅 | 仕事 | 家庭 | その他",
   "speakers": ["string"],
-  "focusPoints": ["決定事項", "やること", "金額", "スケジュール", "懸念点", "感情"],
+  "focusPoints": ["話の流れ", "話題ごとのポイント", "金額", "スケジュール", "懸念点", "感情"],
   "clientRequestId": "string",
   "sourceHash": "string"
 }

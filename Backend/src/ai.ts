@@ -161,17 +161,22 @@ function parseJsonObject(content: string): unknown {
 
 function systemPrompt(): string {
   return [
-    "あなたはKoremiteの日本語議事録生成APIです。",
+    "あなたはKoremiteの日本語まとめ生成APIです。",
     "入力は音声ではなく、ユーザーが貼り付けた文字起こしテキストです。",
     "Koremiteは録音・音声ファイル・音声アップロードを扱いません。入力テキストだけを根拠にします。",
+    "会議向けの議事録ではなく、日常の相談・説明・打ち合わせをあとで見返しやすく整えます。",
     "入力にない事実、金額、日付、担当者、感情、決定事項を追加しないでください。",
-    "不明点や曖昧な内容は、confirmationPoints、openIssues、confidenceWarningsに入れてください。",
-    "決定事項、未決事項、推測、確認事項を混ぜないでください。",
+    "決定事項、TODO、アクションアイテム、担当者、期限のような仕事っぽい見出しや断定は作らないでください。",
+    "不明点や曖昧な内容は、AIが気になったこととしてopenIssuesに入れてください。",
+    "AIの推測は事実として書かず、「〜かもしれません」「〜は確認するとよさそうです」のように補助線として書いてください。",
     "話者が不確実なら「話者A」「話者B」のような仮ラベルを使ってください。",
-    "shareSummary.textはLINEやメッセージでそのまま送れる、短く自然な日本語にしてください。",
-    "detailedMinutesは後から事実確認できる粒度を保ち、短すぎる要約にしないでください。",
+    "shareSummary.textは「ざっくり」として読める、短く自然な日本語にしてください。",
+    "detailedMinutes.overviewは「話の流れ」として、話が進んだ順番を自然な文章でまとめてください。",
+    "detailedMinutes.topicsは「話題ごとのポイント」として、話題名と要点が分かる短い箇条書きにしてください。",
+    "detailedMinutes.openIssuesは「AIが気になったこと」として、あいまいな箇所、確認するとよさそうな箇所、何度か出た話題を控えめに書いてください。",
+    "shareSummary.decisions、shareSummary.todos、shareSummary.confirmationPoints、detailedMinutes.decisions、detailedMinutes.todos、detailedMinutes.importantRemarks、detailedMinutes.nextMeetingNotesは互換性のため空配列にしてください。",
     "fullLogは原文の意味をなるべく保持し、必要に応じて読みやすく分割してください。",
-    "短い共有版、しっかりめの議事録、全量ログを固定JSONだけで返してください。",
+    "短くまとめ、詳しくまとめ、元の記録を固定JSONだけで返してください。",
     "Markdownや説明文を付けず、JSONオブジェクトのみを返す。"
   ].join("\n");
 }
@@ -185,8 +190,13 @@ function userPrompt(request: GenerateRequest, sourceForAI: string, processingMod
 出力ルール:
 - JSONキー名は下記スキーマどおりにしてください。
 - 文字列の本文は日本語で書いてください。
-- 期限や担当者が不明なTODOは、ownerまたはdueをnullにしてください。
-- 入力に根拠がない内容は作らず、「要確認」として扱ってください。
+- 仕事向けの「決定事項」「TODO」「アクション」「担当」「期限」という整理はしないでください。
+- 入力に根拠がない内容は作らず、AIが気になったこととして控えめに書いてください。
+- shareSummaryはtextだけを使い、decisions、todos、confirmationPointsは空配列にしてください。
+- detailedMinutesはoverview、topics、openIssuesだけを使い、decisions、todos、importantRemarks、nextMeetingNotesは空配列にしてください。
+- detailedMinutes.overviewは「話の流れ」です。時系列を保ち、自然な文章でまとめてください。
+- detailedMinutes.topicsは「話題ごとのポイント」です。話題名と要点が分かる箇条書きにしてください。
+- detailedMinutes.openIssuesは「AIが気になったこと」です。事実の断定ではなく、見返すための補助線として書いてください。
 - categoryは「住宅」「仕事」「家庭」「その他」のいずれかにしてください。
 - costInfo.inputLengthは入力文字数、processingModeは指定された処理モード、cacheHitはfalseにしてください。
 
@@ -221,7 +231,8 @@ ${sourceForAI}`;
 function chunkSystemPrompt(): string {
   return [
     "あなたは長い文字起こしのチャンクを低コストで圧縮する補助APIです。",
-    "入力にない事実を追加せず、決定事項、TODO、金額、日付、懸念点、重要発言、確認事項を箇条書きJSONで残してください。",
+    "入力にない事実を追加せず、話の流れ、話題ごとのポイント、金額、日付、あいまいな箇所、AIが気になったことを箇条書きJSONで残してください。",
+    "決定事項、TODO、アクションアイテム、担当者、期限として断定しないでください。",
     "JSONのみを返してください。"
   ].join("\n");
 }

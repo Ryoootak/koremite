@@ -73,9 +73,9 @@ struct ArchiveItemListView: View {
                 if displayItems.isEmpty {
                     if committedQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         ContentUnavailableView(
-                            "議事録がありません",
+                            "まとめがありません",
                             systemImage: "tray",
-                            description: Text("議事録を生成してから保存すると表示されます。")
+                            description: Text("まとめを生成してから保存すると表示されます。")
                         )
                     } else {
                         ContentUnavailableView(
@@ -89,7 +89,7 @@ struct ArchiveItemListView: View {
         }
         .navigationTitle(navigationTitle)
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $query, prompt: "タイトルや概要を検索")
+        .searchable(text: $query, prompt: "タイトルや内容を検索")
         .onSubmit(of: .search) {
             committedQuery = query
         }

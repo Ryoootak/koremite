@@ -10,8 +10,8 @@ enum MeetingCategory: String, CaseIterable, Codable, Identifiable {
 }
 
 enum FocusPoint: String, CaseIterable, Codable, Identifiable {
-    case decisions = "決定事項"
-    case todos = "やること"
+    case decisions = "話の流れ"
+    case todos = "話題ごとのポイント"
     case money = "金額"
     case schedule = "スケジュール"
     case concerns = "懸念点"
@@ -101,20 +101,12 @@ extension MinutesResult {
         var lines: [String] = [
             title,
             "",
-            "概要",
+            "話の流れ",
             detailedMinutes.overview
         ]
 
-        append("論点", detailedMinutes.topics, to: &lines)
-        append("決定事項", detailedMinutes.decisions, to: &lines)
-        append("未決事項", detailedMinutes.openIssues, to: &lines)
-        append("TODO", detailedMinutes.todos.map { item in
-            let owner = item.owner.map { "\($0): " } ?? ""
-            let due = item.due.map { "（\($0)）" } ?? ""
-            return "\(owner)\(item.task)\(due)"
-        }, to: &lines)
-        append("重要な発言", detailedMinutes.importantRemarks, to: &lines)
-        append("次回に向けたメモ", detailedMinutes.nextMeetingNotes, to: &lines)
+        append("話題ごとのポイント", detailedMinutes.topics, to: &lines)
+        append("AIが気になったこと", detailedMinutes.openIssues, to: &lines)
         return lines.joined(separator: "\n")
     }
 

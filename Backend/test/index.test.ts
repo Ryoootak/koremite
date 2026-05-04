@@ -8,19 +8,19 @@ const validAIResponse = {
         text: JSON.stringify({
         title: "住宅の打ち合わせ",
         shareSummary: {
-          text: "共有用の短い要約です。",
-          decisions: ["次回確認する"],
-          todos: [{ owner: null, task: "資料を確認する", due: null }],
-          confirmationPoints: ["金額"]
+          text: "ざっくりした短いまとめです。",
+          decisions: [],
+          todos: [],
+          confirmationPoints: []
         },
         detailedMinutes: {
-          overview: "概要です。",
-          topics: ["論点"],
-          decisions: ["決定"],
-          openIssues: ["未決"],
-          todos: [{ owner: "自分", task: "確認する", due: "次回" }],
-          importantRemarks: ["重要発言"],
-          nextMeetingNotes: ["次回メモ"]
+          overview: "話の流れです。",
+          topics: ["話題ごとのポイント"],
+          decisions: [],
+          openIssues: ["AIが気になったこと"],
+          todos: [],
+          importantRemarks: [],
+          nextMeetingNotes: []
         },
         fullLog: [{ speaker: "自分", text: "本文" }],
         category: "住宅",

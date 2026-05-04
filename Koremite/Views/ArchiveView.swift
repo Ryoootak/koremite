@@ -36,9 +36,9 @@ struct ArchiveView: View {
                 showRenameAlert = true
             }
         )
-        .navigationTitle("保存済み議事録")
+        .navigationTitle("保存済みまとめ")
         .navigationBarTitleDisplayMode(.large)
-        .searchable(text: $query, prompt: "タイトルや概要を検索")
+        .searchable(text: $query, prompt: "タイトルや内容を検索")
         .onSubmit(of: .search) {
             committedQuery = query
         }
@@ -73,7 +73,7 @@ struct ArchiveView: View {
             Button("フォルダのみ削除（中身は保持）", role: .destructive) {
                 if let folder = folderToDelete { archiveStore.deleteFolder(folder, removeItems: false) }
             }
-            Button("フォルダと議事録をすべて削除", role: .destructive) {
+            Button("フォルダとまとめをすべて削除", role: .destructive) {
                 if let folder = folderToDelete { archiveStore.deleteFolder(folder, removeItems: true) }
             }
             Button("キャンセル", role: .cancel) {}
@@ -136,7 +136,7 @@ private struct ArchiveBrowserContent: View {
     private var searchContent: some View {
         if searchResults.isEmpty {
             ContentUnavailableView(
-                query.isEmpty ? "保存済み議事録はありません" : "検索結果なし",
+                query.isEmpty ? "保存済みまとめはありません" : "検索結果なし",
                 systemImage: query.isEmpty ? "archivebox" : "magnifyingglass",
                 description: Text(query.isEmpty ? "生成結果画面から保存できます。" : "別のキーワードで試してください。")
             )
@@ -188,7 +188,7 @@ private struct ArchiveBrowserContent: View {
 
         Section("一覧") {
             NavigationLink(value: ArchiveDest.all) {
-                Label("すべての議事録（\(archiveStore.items.count)件）", systemImage: "list.bullet")
+                Label("すべてのまとめ（\(archiveStore.items.count)件）", systemImage: "list.bullet")
             }
             NavigationLink(value: ArchiveDest.unfoldered) {
                 Label("フォルダなし（\(unfolderedCount)件）", systemImage: "tray")
@@ -207,7 +207,7 @@ private struct ArchiveBrowserContent: View {
 
         if archiveStore.items.isEmpty {
             ContentUnavailableView(
-                "保存済み議事録はありません",
+                "保存済みまとめはありません",
                 systemImage: "archivebox",
                 description: Text("生成結果画面から保存できます。")
             )

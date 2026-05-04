@@ -44,7 +44,7 @@ final class ArchiveStore: ObservableObject {
             try modelContext.save()
             refresh()
         } catch {
-            lastErrorMessage = "議事録を保存できませんでした。"
+            lastErrorMessage = "まとめを保存できませんでした。"
         }
     }
 
@@ -65,7 +65,7 @@ final class ArchiveStore: ObservableObject {
             try modelContext.save()
             refresh()
         } catch {
-            lastErrorMessage = "議事録を削除できませんでした。"
+            lastErrorMessage = "まとめを削除できませんでした。"
         }
     }
 
@@ -171,7 +171,7 @@ final class ArchiveStore: ObservableObject {
                 }
             )
         } catch {
-            lastErrorMessage = "保存済み議事録を読み込めませんでした。"
+            lastErrorMessage = "保存済みまとめを読み込めませんでした。"
         }
 
         refreshFolders()

@@ -414,8 +414,8 @@
       const foldersStorageKey = "koremite.webPreview.folders.v1";
       const maxInput = 50000;
       const focusChips = [
-        { id: "decision", label: "決めごと", hint: "決定事項・合意した内容" },
-        { id: "todo", label: "やること", hint: "誰が・いつ・何を" },
+        { id: "flow", label: "話の流れ", hint: "どんな順番で進んだか" },
+        { id: "topic", label: "話題", hint: "話題ごとのポイント" },
         { id: "money", label: "お金", hint: "金額・支払い・見積もり" },
         { id: "schedule", label: "予定", hint: "日付・期限・次回" },
         { id: "concern", label: "懸念点", hint: "不安・リスク・要確認" },
@@ -435,7 +435,7 @@
         speakerDraft: "",
         otherSpeakers: [],
         selectedSpeakers: ["me", "staff"],
-        focus: "decision",
+        focus: "flow",
         category: "住宅",
         selectedFolderName: null,
         note: "",
@@ -596,7 +596,7 @@
               </div>
               <div style="margin-top:12px;font-size:14.5px;line-height:1.6;color:var(--km-text-2);text-wrap:pretty;max-width:320px">
                 ボイスメモなどの<wbr/>文字起こしを貼るだけ。<br/>
-                相手に送るまとめと、あとで確認できる議事録に変わります。
+                短く見返せるまとめと、あとで確認できる記録に変わります。
               </div>
             </div>
             <div style="flex:1"></div>
@@ -617,7 +617,7 @@
 
       function renderShareSetup() {
         const len = state.transcript.length;
-        const hint = len < 1200 ? "短めの文字起こしです。まとめて整理します。" : len < 8000 ? "共有版と議事録をまとめて作成します。" : "長文のため、段階的に整理します。";
+        const hint = len < 1200 ? "短めの文字起こしです。まとめて整理します。" : len < 8000 ? "短くまとめと詳しくまとめを作成します。" : "長文のため、段階的に整理します。";
         const speakers = currentSpeakers();
         const sheetAnimation = state.setupRendered ? "none" : "km-sheet-in 320ms cubic-bezier(.32,.72,.4,1)";
         screen.innerHTML = `
@@ -728,7 +728,7 @@
       }
 
       function renderGenerating() {
-        const steps = ["文字起こしを整理中…", "要点を抽出中…", "共有版を作成中…", "詳細記録を構成中…"];
+        const steps = ["文字起こしを整理中…", "話の流れを確認中…", "短くまとめを作成中…", "詳しくまとめを構成中…"];
         screen.innerHTML = `
           <div style="padding-top:56px;height:100%;display:flex;flex-direction:column;background:var(--km-bg)">
             <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
@@ -772,9 +772,9 @@
             <div style="padding:0 20px">
               <div class="km-segment" style="grid-template-columns:repeat(3,1fr)">
                 <div class="km-segment-thumb" style="width:calc((100% - 6px)/3);transform:translateX(${tabIndex * 100}%);transition:transform 220ms cubic-bezier(.4,0,.2,1)"></div>
-                <button data-result-tab="summary" data-on="${state.resultTab === "summary"}">共有版</button>
-                <button data-result-tab="minutes" data-on="${state.resultTab === "minutes"}">議事録</button>
-                <button data-result-tab="log" data-on="${state.resultTab === "log"}">全量ログ</button>
+                <button data-result-tab="summary" data-on="${state.resultTab === "summary"}">短くまとめ</button>
+                <button data-result-tab="minutes" data-on="${state.resultTab === "minutes"}">詳しくまとめ</button>
+                <button data-result-tab="log" data-on="${state.resultTab === "log"}">元の記録</button>
               </div>
             </div>
             <div class="km-scroll" style="flex:1;padding:16px 20px 110px">
@@ -806,14 +806,11 @@
               <div class="km-card" style="padding:18px;position:relative">
                 <div style="display:flex;gap:10px;align-items:flex-start">
                   <div style="color:var(--km-moss);margin-top:2px">${icon("sparkle", 16)}</div>
-                  <div style="font-size:15px;font-weight:600;line-height:1.55;text-wrap:pretty">${escapeHTML(s.text)}</div>
+                  <div>
+                    ${sectionLabel("ざっくり")}
+                    <div style="font-size:15px;font-weight:600;line-height:1.55;text-wrap:pretty;margin-top:8px">${escapeHTML(s.text)}</div>
+                  </div>
                 </div>
-                <div style="height:14px"></div><div class="km-hairline"></div><div style="height:14px"></div>
-                ${sectionLabel("要点")}
-                ${bulletList([...(s.decisions || []), ...(s.confirmationPoints || [])].slice(0, 4), "該当なし")}
-                <div style="height:16px"></div>
-                ${sectionLabel("次アクション")}
-                ${todoList(s.todos)}
               </div>
               <div class="km-meta" style="text-align:center;margin-top:14px">↑ そのままコピーしてメッセージに貼れます</div>
             </div>
@@ -824,13 +821,9 @@
           const m = result.detailedMinutes;
           return `
             <div style="display:flex;flex-direction:column;gap:12px;animation:km-fade-up 280ms ease">
-              ${minutesCard("概要", `<div style="font-size:14px;line-height:1.6">${escapeHTML(m.overview)}</div>`)}
-              ${minutesCard("論点", bulletList(m.topics))}
-              ${minutesCard("決定事項", bulletList(m.decisions))}
-              ${minutesCard("未決事項", bulletList(m.openIssues))}
-              ${minutesCard("TODO", todoList(m.todos))}
-              ${minutesCard("重要な発言", bulletList(m.importantRemarks))}
-              ${minutesCard("次回に向けたメモ", bulletList(m.nextMeetingNotes))}
+              ${minutesCard("話の流れ", `<div style="font-size:14px;line-height:1.6">${escapeHTML(m.overview)}</div>`)}
+              ${minutesCard("話題ごとのポイント", bulletList(m.topics))}
+              ${minutesCard("AIが気になったこと", bulletList(m.openIssues))}
             </div>
           `;
         }
@@ -852,7 +845,7 @@
                 ${inputValue || q ? `<button data-action="clear-log-search" class="km-btn" style="background:transparent;color:var(--km-text-3);padding:0">${icon("x", 14)}</button>` : ""}
               </div>
               ${filtered.length === 0
-                ? `<div class="km-meta" style="text-align:center;padding:24px">${q ? "検索結果なし" : "全量ログがありません"}</div>`
+                ? `<div class="km-meta" style="text-align:center;padding:24px">${q ? "検索結果なし" : "元の記録がありません"}</div>`
                 : filtered.map(({ entry, index }) => `
                   <div class="km-card" style="padding:14px 16px">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -1145,11 +1138,9 @@
       function minutesText(result) {
         const m = result.detailedMinutes;
         return [
-          result.title, "", "概要", m.overview, "", "論点",
-          ...(m.topics || []).map((x) => `- ${x}`), "", "決定事項",
-          ...(m.decisions || []).map((x) => `- ${x}`), "", "未決事項",
-          ...(m.openIssues || []).map((x) => `- ${x}`), "", "TODO",
-          ...(m.todos || []).map((x) => `- ${x.owner ? `${x.owner}: ` : ""}${x.task}${x.due ? `（${x.due}）` : ""}`)
+          result.title, "", "話の流れ", m.overview, "", "話題ごとのポイント",
+          ...(m.topics || []).map((x) => `- ${x}`), "", "AIが気になったこと",
+          ...(m.openIssues || []).map((x) => `- ${x}`)
         ].join("\n");
       }
 

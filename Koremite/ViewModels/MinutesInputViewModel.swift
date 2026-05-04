@@ -34,7 +34,7 @@ final class MinutesInputViewModel: ObservableObject {
         case .short:
             return "短めの文字起こしです。まとめて整理します。"
         case .normal:
-            return "内容量に合わせて、共有版と議事録をまとめて作成します。"
+            return "内容量に合わせて、短くまとめと詳しくまとめを作成します。"
         case .longChunked:
             return "長文のため、段階的に整理します。"
         }
@@ -118,7 +118,7 @@ final class MinutesInputViewModel: ObservableObject {
             generatedResult.createdAt = Date()
             result = generatedResult
         } catch {
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? "議事録を生成できませんでした。"
+            errorMessage = (error as? LocalizedError)?.errorDescription ?? "まとめを生成できませんでした。"
         }
 
         isGenerating = false

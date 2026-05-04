@@ -57,7 +57,7 @@ struct InputView: View {
                 .scaledToFit()
                 .frame(width: 190)
                 .accessibilityLabel("Koremite")
-            Text("文字起こしを貼り付けて、送れる議事録に整えます。")
+            Text("文字起こしを貼り付けて、送れるまとめに整えます。")
                 .font(.subheadline)
                 .foregroundStyle(KMColor.secondaryText)
         }
@@ -275,7 +275,7 @@ struct InputView: View {
     }
 
     private var generateButton: some View {
-        KMPrimaryButton(title: "議事録を生成", systemImage: "sparkles", isDisabled: !viewModel.canGenerate) {
+        KMPrimaryButton(title: "まとめを生成", systemImage: "sparkles", isDisabled: !viewModel.canGenerate) {
             Task { await viewModel.generate(reusing: archiveStore) }
         }
         .padding(.bottom, KMSpacing.xl)

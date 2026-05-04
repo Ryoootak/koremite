@@ -10,7 +10,7 @@ struct LoadingView: View {
                     .scaleEffect(1.2)
                 Text("文字起こしを整理しています")
                     .font(.headline)
-                Text("共有版としっかり議事録を作成中")
+                Text("短くまとめと詳しくまとめを作成中")
                     .font(.subheadline)
                     .foregroundStyle(KMColor.secondaryText)
             }

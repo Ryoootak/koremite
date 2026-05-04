@@ -16,7 +16,7 @@ describe("schema", () => {
       transcript: "打ち合わせ本文",
       category: "不明",
       speakers: ["自分", "相手"],
-      focusPoints: ["決定事項"],
+      focusPoints: ["話の流れ"],
       clientRequestId: "req-1",
       sourceHash: "hash-1"
     }, 30000);

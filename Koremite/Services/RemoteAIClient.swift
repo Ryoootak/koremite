@@ -19,7 +19,7 @@ struct RemoteAIClient: AIClient {
 
             guard (200..<300).contains(httpResponse.statusCode) else {
                 let message = (try? JSONDecoder().decode(APIErrorResponse.self, from: data).message)
-                throw AIClientError.serverMessage(message ?? "議事録を生成できませんでした。時間をおいてもう一度お試しください。")
+                throw AIClientError.serverMessage(message ?? "まとめを生成できませんでした。時間をおいてもう一度お試しください。")
             }
 
             do {

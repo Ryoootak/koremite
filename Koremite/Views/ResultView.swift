@@ -93,7 +93,7 @@ struct ResultView: View {
             Button {
                 UIPasteboard.general.string = result.copyText
             } label: {
-                Label("議事録", systemImage: "doc.on.doc")
+                Label("詳しくまとめ", systemImage: "doc.on.doc")
             }
             .buttonStyle(.bordered)
 
@@ -128,9 +128,9 @@ private enum ResultTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .share: return "共有版"
-        case .minutes: return "議事録"
-        case .fullLog: return "全量ログ"
+        case .share: return "短くまとめ"
+        case .minutes: return "詳しくまとめ"
+        case .fullLog: return "元の記録"
         }
     }
 }
@@ -143,14 +143,14 @@ private struct ShareSummaryView: View {
     var body: some View {
         VStack(spacing: KMSpacing.lg) {
             KMCard {
-                Text(summary.text)
-                    .font(.body)
-                    .lineSpacing(4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: KMSpacing.sm) {
+                    Text("ざっくり").font(.headline)
+                    Text(summary.text)
+                        .font(.body)
+                        .lineSpacing(4)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            ListBlock(title: "決定事項", items: summary.decisions)
-            TodoBlock(items: summary.todos)
-            ListBlock(title: "確認事項", items: summary.confirmationPoints)
         }
     }
 }
@@ -164,17 +164,13 @@ private struct DetailedMinutesView: View {
         VStack(spacing: KMSpacing.lg) {
             KMCard {
                 VStack(alignment: .leading, spacing: KMSpacing.sm) {
-                    Text("概要").font(.headline)
+                    Text("話の流れ").font(.headline)
                     Text(minutes.overview).lineSpacing(4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            ListBlock(title: "論点", items: minutes.topics)
-            ListBlock(title: "決定事項", items: minutes.decisions)
-            ListBlock(title: "未決事項", items: minutes.openIssues)
-            TodoBlock(items: minutes.todos)
-            ListBlock(title: "重要な発言", items: minutes.importantRemarks)
-            ListBlock(title: "次回に向けたメモ", items: minutes.nextMeetingNotes)
+            ListBlock(title: "話題ごとのポイント", items: minutes.topics)
+            ListBlock(title: "AIが気になったこと", items: minutes.openIssues)
         }
     }
 }
@@ -227,7 +223,7 @@ private struct FullLogView: View {
 
             if entries.isEmpty {
                 KMCard {
-                    Text("全量ログがありません")
+                    Text("元の記録がありません")
                         .foregroundStyle(KMColor.tertiaryText)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -273,32 +269,6 @@ private struct ListBlock: View {
                     ForEach(items, id: \.self) { item in
                         Text("・\(item)")
                             .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-            }
-        }
-    }
-}
-
-private struct TodoBlock: View {
-    let items: [TodoItem]
-
-    var body: some View {
-        KMCard {
-            VStack(alignment: .leading, spacing: KMSpacing.sm) {
-                Text("TODO").font(.headline)
-                if items.isEmpty {
-                    Text("該当なし")
-                        .foregroundStyle(KMColor.tertiaryText)
-                } else {
-                    ForEach(items) { item in
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(item.task)
-                            Text([item.owner, item.due].compactMap { $0 }.joined(separator: " ・ "))
-                                .font(.caption)
-                                .foregroundStyle(KMColor.secondaryText)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
